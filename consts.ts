@@ -37,5 +37,3 @@ export const helpText: { readonly [key in TAPIMethods]: string } = {
 }
 
 export const mainOwnerID = '278796523817402369';
-
-export const botSecretToken = "NzU0MjEyNTI2NTkzNDA5MDY1.X1xdJg.CC1a0qIdtWvyqeIKoLvIJM8dRzQ";
