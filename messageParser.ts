@@ -35,35 +35,35 @@ export const messageParserHelper: IMessageParserHelpers = {
 }
 
 const messageParser: TMessageParserMethods = {
-  initServer(): string | null {
-    return null;
+  initServer() {
+    return 'null';
   },
 
-  deleteServer(): string | null {
-    return null;
+  deleteServer() {
+    return 'null';
   },
 
-  startGame(): string | null {
-    return null;
+  startGame() {
+    return 'null';
   },
 
-  cancelGame(): string | null {
-    return null;
+  cancelGame() {
+    return 'null';
   },
 
-  endGame(): string | null {
-    return null;
+  endGame() {
+    return 'null';
   },
 
-  deleteGame(): string | null {
-    return null;
+  deleteGame() {
+    return 'null';
   },
 
-  updateRoles(): string | null {
-    return null;
+  updateRoles() {
+    return 'null';
   },
 
-  help(): string | null {
-    return null;
+  help() {
+    return 'null';
   }
 }
