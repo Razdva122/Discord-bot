@@ -1,4 +1,4 @@
-import { TAPIMethods, TMessageParserMethods, Constructor } from './types';
+import { TAPIMethods, TMessageParserMethods } from './types';
 
 import { methods } from './consts';
 
@@ -9,7 +9,7 @@ interface IMessageParserHelpers {
   isCorrectMethod: (str: string) => str is TAPIMethods
 }
 
-export const messageParser: TMessageParserMethods & IMessageParserHelpers = {
+export const messageParserHelper: IMessageParserHelpers = {
   parseMessage(msg) {
     if (!msg.content.startsWith('!')) {
       return null;
@@ -21,17 +21,49 @@ export const messageParser: TMessageParserMethods & IMessageParserHelpers = {
 
     const method = command[0];
 
-    if (!messageParser.isCorrectMethod(method)) {
+    if (!messageParserHelper.isCorrectMethod(method)) {
       return 'Некорректный метод';
     } 
     messageParser[method](...command.slice(1));
+
+    return null;
   },
 
   isCorrectMethod(str): str is TAPIMethods {
     return methods.includes(str);
   },
+}
 
+const messageParser: TMessageParserMethods = {
   initServer(): string | null {
+    return null;
+  },
+
+  deleteServer(): string | null {
+    return null;
+  },
+
+  startGame(): string | null {
+    return null;
+  },
+
+  cancelGame(): string | null {
+    return null;
+  },
+
+  endGame(): string | null {
+    return null;
+  },
+
+  deleteGame(): string | null {
+    return null;
+  },
+
+  updateRoles(): string | null {
+    return null;
+  },
+
+  help(): string | null {
     return null;
   }
 }

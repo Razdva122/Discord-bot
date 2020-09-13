@@ -4,6 +4,7 @@
   "description": "Bot for game among us",
   "main": "index.ts",
   "dependencies": {
+    "@tsconfig/recommended": "^1.0.1",
     "@types/node": "^14.10.1",
     "discord.js": "^12.3.1",
     "ts-node": "^9.0.0",

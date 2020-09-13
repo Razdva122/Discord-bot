@@ -39,6 +39,4 @@ export type TAnswerError = {
 
 export type ValuesOf<T> = T[keyof T];
 
-export type Constructor<T> = Function & { prototype: T }
-
 export type TAnswer<T> = TAnswerResult<T> | TAnswerError;
