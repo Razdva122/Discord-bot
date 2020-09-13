@@ -1,6 +1,6 @@
-import { TAPIMethods, TMessageParserMethods } from './types';
+import { TAPIMethods, TMessageParserMethods } from '../types';
 
-import { methods } from './consts';
+import { methods } from '../consts';
 
 import { Message } from 'discord.js';
 
@@ -24,7 +24,7 @@ export const messageParserHelper: IMessageParserHelpers = {
     if (!messageParserHelper.isCorrectMethod(method)) {
       return 'Некорректный метод';
     } 
-    messageParser[method](...command.slice(1));
+    messageParser[method](msg, ...command.slice(1));
 
     return null;
   },
@@ -35,7 +35,7 @@ export const messageParserHelper: IMessageParserHelpers = {
 }
 
 const messageParser: TMessageParserMethods = {
-  initServer() {
+  initServer(msg, adminRole, verifiedRole) {
     return 'null';
   },
 

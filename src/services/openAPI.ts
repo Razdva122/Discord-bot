@@ -1,9 +1,9 @@
 import { User } from 'discord.js';
 
-import { mainOwnerID, accessLevelToMethods, accessLevel, helpText } from './consts';
+import { mainOwnerID, accessLevelToMethods, accessLevel, helpText } from '../consts';
 
 import { Server, ServersClaster } from './servers';
-import { TAnswer, TMethodsWithServer, TAPIClassMethods, Parameters } from './types';
+import { TAnswer, TMethodsWithServer, TAPIClassMethods, Parameters } from '../types';
 
 export default class OpenApi implements TAPIClassMethods {
   readonly mainOwnerID: string = mainOwnerID;

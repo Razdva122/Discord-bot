@@ -1,6 +1,6 @@
-import { TAnswer, TAccessLevel } from './types';
+import { TAnswer, TAccessLevel } from '../types';
 
-import { mainOwnerID } from './consts';
+import { mainOwnerID } from '../consts';
 
 import { User } from 'discord.js';
 

@@ -1,4 +1,4 @@
-import { TAccessLevel, ValuesOf, TAPIMethods } from './types';
+import { TAccessLevel, ValuesOf, TAPIMethods } from '../types';
 
 export const accessLevel: { readonly [key in TAccessLevel]: number } = {
   all: 0,

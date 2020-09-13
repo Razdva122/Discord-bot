@@ -2,7 +2,7 @@ import { Client, TextChannel } from 'discord.js';
 
 import { ICommand } from './types';
 
-import { botSecretToken } from './private';
+import { botSecretToken } from './consts/private';
 
 const client = new Client();
 

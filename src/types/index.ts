@@ -1,4 +1,6 @@
-import { User } from 'discord.js';
+import { User, Message } from 'discord.js';
+
+export * from './util';
 
 export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
 
@@ -14,7 +16,7 @@ export type TAPIClassMethods = {
 }
 
 export type TMessageParserMethods = {
-  [key in TAPIMethods]: (...args: any) => string | null
+  [key in TAPIMethods]: (msg: Message, ...args: string[]) => string
 }
 
 export interface ICommand {
@@ -37,6 +39,5 @@ export type TAnswerError = {
   },
 }
 
-export type ValuesOf<T> = T[keyof T];
-
 export type TAnswer<T> = TAnswerResult<T> | TAnswerError;
+
