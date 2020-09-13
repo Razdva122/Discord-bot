@@ -43,7 +43,6 @@ client.on('ready', () => {
 });
 
 client.on('message', msg => {
-  msg.channel
   if (!msg.content.startsWith('!')) {
     return;
   }

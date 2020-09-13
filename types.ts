@@ -9,8 +9,12 @@ export type TAPIMethods = TMethodsWithoutServer | TMethodsWithServer;
 
 export type Parameters<T> = T extends (... args: infer T) => any ? T : never; 
 
-export type TAPIMethodsWithServer = {
-  [key in TMethodsWithServer]: (...args: any) => TAnswer<any>
+export type TAPIClassMethods = {
+  [key in TAPIMethods]: (...args: any) => TAnswer<any>
+}
+
+export type TMessageParserMethods = {
+  [key in TAPIMethods]: (...args: any) => string | null
 }
 
 export interface ICommand {
@@ -34,5 +38,7 @@ export type TAnswerError = {
 }
 
 export type ValuesOf<T> = T[keyof T];
+
+export type Constructor<T> = Function & { prototype: T }
 
 export type TAnswer<T> = TAnswerResult<T> | TAnswerError;

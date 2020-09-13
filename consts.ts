@@ -25,6 +25,8 @@ export const accessLevelToMethods: { readonly [key in TAPIMethods]: number } = {
   'help': accessLevel.all,
 }
 
+export const methods = Object.keys(accessLevelToMethods);
+
 export const helpText: { readonly [key in TAPIMethods]: string } = {
   'initServer': `[${helpLevel[accessLevelToMethods.initServer]}] Инициализировать бота`,
   'deleteServer': `[${helpLevel[accessLevelToMethods.deleteServer]}] Выключить бота`,

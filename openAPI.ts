@@ -3,9 +3,9 @@ import { User } from 'discord.js';
 import { mainOwnerID, accessLevelToMethods, accessLevel, helpText } from './consts';
 
 import { Server, ServersClaster } from './servers';
-import { TAnswer, TMethodsWithServer, TAPIMethodsWithServer, Parameters } from './types';
+import { TAnswer, TMethodsWithServer, TAPIClassMethods, Parameters } from './types';
 
-export default class OpenApi implements TAPIMethodsWithServer {
+export default class OpenApi implements TAPIClassMethods {
   readonly mainOwnerID: string = mainOwnerID;
 
   private userHavePermissions(user: User, server: Server, levelOfPermission: number): boolean {
