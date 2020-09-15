@@ -1,8 +1,6 @@
-import { TAnswer, TAccessLevel } from '../types';
+import { User, Guild } from 'discord.js';
 
-import { mainOwnerID } from '../consts';
-
-import { User } from 'discord.js';
+import { TAnswer } from '../types';
 
 export class ServersClaster {
   private static claster: { [key: string] : Server }
@@ -60,47 +58,62 @@ export class ServersClaster {
 }
 
 export class Server {
-  readonly channelID: string
-  readonly roleAdminsID: string
-  readonly adminsIDs: string[] = [];
-  readonly verifiedIDs: string[] = [];
-  readonly roleVerifiedID: string
-  readonly mainOwnerID: string = mainOwnerID;
-
   users: { 
-    owner: {
-      ownerID: string,
-    },
     admins: {
       roleID: string,
       usersID: string[],
     },
-    verified?: {
+    verified: {
       roleID: string,
       usersID: string[],
     }
   }
 
-  constructor({ channelID, roleAdminsID, roleVerifiedID }: { channelID: string, roleAdminsID: string, roleVerifiedID?: string }) {
-    this.channelID = channelID;
-    this.roleAdminsID = roleAdminsID;
-    this.roleVerifiedID = roleVerifiedID;
+  constructor({ adminsRoleID, verifiedRoleID, guild }: { adminsRoleID: string, verifiedRoleID: string, guild: Guild }) {
+    const adminsIDs = this.getUsersIDsByRoleID(guild, adminsRoleID);
+    const verifiedIDs = this.getUsersIDsByRoleID(guild, verifiedRoleID);
+    this.users = {
+      admins: {
+        roleID: adminsRoleID,
+        usersID: adminsIDs,
+      },
+      verified: {
+        roleID: verifiedRoleID,
+        usersID: verifiedIDs,
+      }
+    }
+  }
+
+  private getUsersIDsByRoleID(guild: Guild, roleID: string): string[] {
+    return guild.members.cache
+      .filter((user) => user.roles.cache.has(roleID))
+      .map((user) => user.id)
   }
 
   public isUserVerified(user: User): boolean {
-    const { verified } = this.users;
-    return verified ? verified.usersID.includes(user.id) : false;
+    return this.users.verified.usersID.includes(user.id);
   }
 
   public isUserAdmin(user: User) {
     return this.users.admins.usersID.includes(user.id);
   }
 
-  public updateRoles(adminsIDs: string[], verifiedIDs?: string[]) {
-    this.users.admins.usersID = adminsIDs;
+  public updateRoles(guild: Guild): TAnswer {
+    if (!guild.roles.cache.has(this.users.admins.roleID) || !guild.roles.cache.has(this.users.verified.roleID)) {
+      return {
+        error: {
+          msg: 'ID ролей изменилось невозможно обновить роли',
+        }
+      }
+    }
 
-    if (this.users.verified && verifiedIDs) {
-      this.users.verified.usersID = verifiedIDs;
+    this.users.admins.usersID = this.getUsersIDsByRoleID(guild, this.users.admins.roleID);
+    this.users.verified.usersID = this.getUsersIDsByRoleID(guild, this.users.verified.roleID);
+
+    return {
+      result: {
+        data: 'Роли успешно обновлены',
+      }
     }
   }
 }

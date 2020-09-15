@@ -39,5 +39,5 @@ export type TAnswerError = {
   },
 }
 
-export type TAnswer<T> = TAnswerResult<T> | TAnswerError;
+export type TAnswer<T = string> = TAnswerResult<T> | TAnswerError;
 
