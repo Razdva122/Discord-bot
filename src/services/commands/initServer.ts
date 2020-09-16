@@ -1,55 +1,36 @@
 import { Guild } from 'discord.js';
 
-import { Command } from './command';
+import { ServerlessCommand } from './command';
 import { ServersClaster, Server } from '../servers';
+import { Err, Res } from "../../utils/response";
 
 import { TAnswer } from "../../types";
 
-// !initServer [Роль админов] [Роль верифицированных игроков]
-export default class InitServer extends Command {
+// !initServer [Роль админов] [Роль верифицированных пользователей]
+export default class InitServer extends ServerlessCommand {
   validateCommand([adminsRole, verifiedRole]: string[]) {
     if (!adminsRole) {
-      return {
-        error: {
-          msg: 'Нужно передать роль админа',
-        }
-      }
+      return Err('Нужно передать роль админа')
     }
 
     if (!verifiedRole) {
-      return {
-        error: {
-          msg: 'Нужно передать роль верифицированных игроков',
-        }
-      }
+      return Err('Нужно передать роль верифицированных пользователей');
     }
 
-    return {
-      result: {
-        data: 'Команда корректна',
-      }
-    }
+    return Res('Команда корректна');
   }
 
-  processCommand(args: string[], guild: Guild): TAnswer {
+  executeCommand(args: string[], guild: Guild): TAnswer {
     const [adminsRole, verifiedRole] = args;
 
     const adminsRoleID = guild.roles.cache.findKey((role) => role.name === adminsRole);
     const verifiedRoleID = guild.roles.cache.findKey((role) => role.name === verifiedRole);
     if(!adminsRoleID) {
-      return {
-        error: {
-          msg: `На сервере нет роли с именем ${adminsRole}`,
-        }
-      }
+      return Err(`На сервере нет роли с именем ${adminsRole}`);
     }
 
     if(!verifiedRoleID) {
-      return {
-        error: {
-          msg: `На сервере нет роли с именем ${verifiedRole}`,
-        }
-      }
+      return Err(`На сервере нет роли с именем ${verifiedRole}`);
     }
 
     const createServer = ServersClaster.setNewServer(guild.id, new Server({ adminsRoleID, verifiedRoleID, guild }));
@@ -57,10 +38,6 @@ export default class InitServer extends Command {
       return createServer;
     }
 
-    return {
-      result: {
-        data: 'Сервер успешно инициализирован',
-      }
-    }
+    return Res('Сервер успешно инициализирован');
   }
 }

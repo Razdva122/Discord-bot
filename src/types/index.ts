@@ -41,3 +41,20 @@ export type TAnswerError = {
 
 export type TAnswer<T = string> = TAnswerResult<T> | TAnswerError;
 
+export interface IPlayer {
+  id: string,
+  name: string,
+  games: string[],
+  rating: number,
+}
+
+export type TGame = {
+  status: 'Progress' | 'Canceled',
+  players: { name: string, id: string }[]
+} | {
+  status: 'Finished',
+  impostors: { name: string, id: string, rating: { before: number, after: number } }[],
+  crewmates: { name: string, id: string, rating: { before: number, after: number } }[],
+  win: 'impostors' | 'crewmates'
+}
+

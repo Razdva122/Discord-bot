@@ -3,6 +3,7 @@ import { User, Guild } from "discord.js";
 import { mainOwnerID, accessLevel } from "../../consts/index";
 
 import { TAnswer } from "../../types";
+import { Err, Res } from "../../utils/response";
 import { Server } from '../servers';
 
 export abstract class Command {
@@ -22,24 +23,22 @@ export abstract class Command {
 
   public validateOwnerPermission(user: User): TAnswer {
     if (user.id === mainOwnerID) {
-      return {
-        result: {
-          data: 'Юзер является Ownerом',
-        }
-      }
+      return Res('Юзер является Ownerом');
     }
 
-    return {
-      error: {
-        msg: 'Необходим доступ уровня Owner',
-      }
-    }
+    return Err('Необходим доступ уровня Owner');
   }
-
-  abstract processCommand(args: string[], guild: Guild, server?: Server): TAnswer
 }
 
-export abstract class CommandToServer extends Command {
+export abstract class ServerlessCommand extends Command {
+  type = 'serverless';
+
+  abstract executeCommand(args: string[], guild: Guild): TAnswer
+}
+
+export abstract class ServerCommand extends Command {
+  type = 'serverdependent';
+
   public validatePermission(user: User, server: Server): TAnswer {
     let userLevelOfPermissions = accessLevel.all;
 
@@ -56,19 +55,11 @@ export abstract class CommandToServer extends Command {
     }
 
     if (this.levelOfPermission <= userLevelOfPermissions) {
-      return {
-        result: {
-          data: 'Доступ разрешен',
-        }
-      }
+      return Res('Доступ разрешен');
     }
 
-    return {
-      error: {
-        msg: 'Не достаточно прав для данной команды',
-      }
-    }
+    return Err('Не достаточно прав для данной команды');
   }
 
-  abstract processCommand(args: string[], guild: Guild, server: Server): TAnswer
+  abstract executeCommand(args: string[], guild: Guild, server: Server): TAnswer
 }

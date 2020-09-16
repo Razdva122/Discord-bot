@@ -3,7 +3,7 @@ import { User, Guild } from 'discord.js';
 import { TAnswer } from '../types';
 
 export class ServersClaster {
-  private static claster: { [key: string] : Server }
+  private static claster: { [key: string] : Server } = {};
 
   public static setNewServer(serverId: string, server: Server): TAnswer<Server> {
     if (this.claster[serverId]) {
@@ -68,7 +68,7 @@ export class Server {
       usersID: string[],
     }
   }
-
+  
   constructor({ adminsRoleID, verifiedRoleID, guild }: { adminsRoleID: string, verifiedRoleID: string, guild: Guild }) {
     const adminsIDs = this.getUsersIDsByRoleID(guild, adminsRoleID);
     const verifiedIDs = this.getUsersIDsByRoleID(guild, verifiedRoleID);

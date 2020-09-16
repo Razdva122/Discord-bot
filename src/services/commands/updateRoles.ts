@@ -1,16 +1,20 @@
 import { Guild } from 'discord.js';
 
-import { CommandToServer } from './command';
-import { ServersClaster, Server } from '../servers';
+import { ServerCommand } from './command';
+import { Server } from '../servers';
+import { Err, Res } from "../../utils/response";
 
 import { TAnswer } from "../../types";
 
-export default class updateRoles extends CommandToServer {
+// !updateRoles
+export default class UpdateRoles extends ServerCommand {
   validateCommand(args: string[]) {
-    return {
-      result: {
-        data: 'Команда корректна',
-      }
-    }
+    return Res('Команда корректна');
+  }
+
+  executeCommand(args: string[], guild: Guild, server: Server): TAnswer {
+    const updateRoles = server.updateRoles(guild);
+
+    return updateRoles;
   }
 }
