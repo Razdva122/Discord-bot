@@ -1,10 +1,25 @@
-import { Client, TextChannel } from 'discord.js';
+import { Client } from 'discord.js';
 
-import { botSecretToken } from './consts/private';
+import mongoose from 'mongoose';
+
+import { botSecretToken, mongoAuth } from './consts/private';
 
 import commandController from './services/commandController';
 
 const client = new Client();
+
+async function start() {
+  try {
+    await mongoose.connect(`mongodb+srv://${mongoAuth.user}:${mongoAuth.password}@cluster0.nm0xd.mongodb.net/servers`, {
+      useNewUrlParser: true,
+      useFindAndModify: false,
+    });
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+start();
 
 client.on('ready', () => {
   console.log(`[INFO] Logged in as ${client.user!.tag}!`);
