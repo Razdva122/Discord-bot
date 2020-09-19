@@ -1,12 +1,21 @@
 import { User, Guild } from 'discord.js';
 
-import { TAnswer } from '../types';
+import { TAnswer, IServersFromMongo } from '../types';
+
+import { ServerModel } from '../models';
 
 export class ServersClaster {
-  private static claster: { [key: string] : Server } = {};
+  private claster: { [key: string] : Server } = {};
 
-  public static setNewServer(serverId: string, server: Server): TAnswer<Server> {
-    if (this.claster[serverId]) {
+  constructor(serversFromMongo: IServersFromMongo[]) {
+    serversFromMongo.forEach((serverInfo) => {
+      const { adminsRoleID, serverID, verifiedRoleID} = serverInfo;
+      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID });
+    });
+  }
+
+  public async setNewServer(serverID: string, server: Server): Promise<TAnswer<Server>> {
+    if (this.claster[serverID]) {
       return {
         error: {
           msg: 'Bot already exist on server',
@@ -14,34 +23,40 @@ export class ServersClaster {
       }
     }
 
-    this.claster[serverId] = server;
+    const createServer = new ServerModel({
+      serverID,
+      adminsID: server.users.admins.roleID,
+      verifiedID: server.users.verified.roleID,
+    });
+    const res = await createServer.save();
+    this.claster[serverID] = server;
 
     return {
       result: {
-        data: this.claster[serverId],
+        data: this.claster[serverID],
       }
     }
   }
 
-  public static getServer(serverId: string): TAnswer<Server> {
-    if (this.claster[serverId]) {
+  public getServer(serverID: string): TAnswer<Server> {
+    if (this.claster[serverID]) {
       return {
         result: {
-          data: this.claster[serverId],
+          data: this.claster[serverID],
         }
       }
     }
 
     return {
       error: {
-        msg: `Server with ID:${serverId} does not exist`,
+        msg: `Server with ID:${serverID} does not exist`,
       }
     }
   }
 
-  public static deleteServer(serverId: string): TAnswer<string> {
-    if (this.claster[serverId]) {
-      delete this.claster[serverId];
+  public deleteServer(serverID: string): TAnswer<string> {
+    if (this.claster[serverID]) {
+      delete this.claster[serverID];
       return {
         result: {
           data: 'Success',
@@ -51,7 +66,7 @@ export class ServersClaster {
 
     return {
       error: {
-        msg: `Server with ID:${serverId} does not exist`,
+        msg: `Server with ID:${serverID} does not exist`,
       }
     }
   }

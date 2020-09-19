@@ -16,7 +16,7 @@ export default class UpdateRole extends ServerCommand {
     return Res('Команда корректна');
   }
 
-  executeCommand(args: string[], guild: Guild, server: Server): TAnswer {
+  async executeCommand(args: string[], guild: Guild, server: Server): Promise<TAnswer> {
     const [roleToChange, newRole] = args;
 
     const newRoleID = guild.roles.cache.findKey((role) => role.name === newRole);

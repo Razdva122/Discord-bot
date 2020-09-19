@@ -20,7 +20,7 @@ export default class InitServer extends ServerlessCommand {
     return Res('Команда корректна');
   }
 
-  executeCommand(args: string[], guild: Guild): TAnswer {
+  async executeCommand(args: string[], guild: Guild, ServersClaster: ServersClaster): Promise<TAnswer> {
     const [adminsRole, verifiedRole] = args;
 
     const adminsRoleID = guild.roles.cache.findKey((role) => role.name === adminsRole);
@@ -33,7 +33,7 @@ export default class InitServer extends ServerlessCommand {
       return Err(`На сервере нет роли с именем ${verifiedRole}`);
     }
 
-    const createServer = ServersClaster.setNewServer(guild.id, new Server({ adminsRoleID, verifiedRoleID }));
+    const createServer = await ServersClaster.setNewServer(guild.id, new Server({ adminsRoleID, verifiedRoleID }));
     if (createServer.error) {
       return createServer;
     }

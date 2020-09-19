@@ -37,6 +37,4 @@ interface IChangeRating {
 }
 
 
-const User = mongoose.model<IUser>('User', userSchema);
-
-export default User;
+export const UserModel = mongoose.model<IUser>('User', userSchema);

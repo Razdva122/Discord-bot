@@ -4,7 +4,7 @@ import { mainOwnerID, accessLevel } from "../../consts/index";
 
 import { TAnswer } from "../../types";
 import { Err, Res } from "../../utils/response";
-import { Server } from '../servers';
+import { Server, ServersClaster } from '../servers';
 
 export abstract class Command {
   levelOfPermission: number;
@@ -33,7 +33,7 @@ export abstract class Command {
 export abstract class ServerlessCommand extends Command {
   type = 'serverless';
 
-  abstract executeCommand(args: string[], guild: Guild): TAnswer
+  abstract async executeCommand(args: string[], guild: Guild, serversClaster: ServersClaster): Promise<TAnswer>
 }
 
 export abstract class ServerCommand extends Command {
@@ -61,5 +61,5 @@ export abstract class ServerCommand extends Command {
     return Err('Не достаточно прав для данной команды');
   }
 
-  abstract executeCommand(args: string[], guild: Guild, server: Server): TAnswer
+  abstract async executeCommand(args: string[], guild: Guild, server: Server): Promise<TAnswer>
 }

@@ -12,6 +12,4 @@ interface IServerSchema extends Document {
   verifiedID: string,
 }
 
-const Server = mongoose.model<IServerSchema>('Server', serverSchema);
-
-export default Server;
+export const ServerModel = mongoose.model<IServerSchema>('Server', serverSchema);

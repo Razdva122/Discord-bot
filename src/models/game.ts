@@ -41,6 +41,5 @@ const gameSchema = new mongoose.Schema({
   verifiedID: String,
 });
 
-const Game = mongoose.model<TGame>('Game', gameSchema);
+export const GameModel = mongoose.model<TGame>('Game', gameSchema);
 
-export default Game;

@@ -4,9 +4,11 @@ import mongoose from 'mongoose';
 
 import { botSecretToken, mongoAuth } from './consts/private';
 
-import User from './models/user';
+import { ServerModel } from './models';
 
-import commandController from './services/commandController';
+import { ServersClaster } from './services/servers';
+
+import CommandController from './services/commandController';
 
 const client = new Client();
 
@@ -16,6 +18,45 @@ async function start() {
       useNewUrlParser: true,
       useFindAndModify: false,
     });
+
+    const servers = await ServerModel.find({});
+
+    const serverClaster = new ServersClaster(servers.map((server) => {
+      return {
+        serverID: server.id,
+        adminsRoleID: server.adminsID,
+        verifiedRoleID: server.verifiedID,
+      }
+    }));
+
+    const commandController = new CommandController(serverClaster);
+
+    client.on('ready', () => {
+      console.log(`[INFO] Logged in as ${client.user!.tag}!`);
+    });
+    
+    client.on('message', async (msg) => {
+      if (msg.author == client.user) {
+        return;
+      }
+    
+      if (msg.channel.type !== 'text') {
+        return;
+      }
+    
+      if (!msg.content.startsWith('!')) {
+        return;
+      }
+    
+      const commandRes = await commandController.processMessage(msg);
+      if (commandRes.error) {
+        msg.channel.send(`[ОШИБКА] ${commandRes.error.msg}`);
+      } else {
+        msg.channel.send(`[УСПЕХ] ${commandRes.result.data}`);
+      }
+    });
+    
+    client.login(botSecretToken);
   } catch (e) {
     console.log(e);
   }
@@ -23,30 +64,4 @@ async function start() {
 
 start();
 
-client.on('ready', () => {
-  console.log(`[INFO] Logged in as ${client.user!.tag}!`);
-});
 
-client.on('message', msg => {
-  if (msg.author == client.user) {
-    return;
-  }
-
-  if (msg.channel.type !== 'text') {
-    return;
-  }
-
-  if (!msg.content.startsWith('!')) {
-    return;
-  }
-
-  console.log(msg.content);
-  const commandRes = commandController.processMessage(msg);
-  if (commandRes.error) {
-    msg.channel.send(`[ОШИБКА] ${commandRes.error.msg}`);
-  } else {
-    msg.channel.send(`[УСПЕХ] ${commandRes.result.data}`);
-  }
-});
-
-client.login(botSecretToken);

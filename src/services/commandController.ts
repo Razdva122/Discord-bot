@@ -11,7 +11,13 @@ import { Err, Res } from "../utils/response";
 import commands from './commands'
 
 export default class commandController {
-  static processMessage(msg: Message): TAnswer {
+  serverClaster: ServersClaster;
+
+  constructor(serverClaster: ServersClaster) {
+    this.serverClaster = serverClaster;
+  }
+
+  async processMessage(msg: Message): Promise<TAnswer> {
     const [method, ...args] = msg.content.trim().split(' ');
 
     if (!this.isValidMethod(method)) {
@@ -31,9 +37,9 @@ export default class commandController {
         return permissionRes;
       }
 
-      return command.executeCommand(args, msg.guild!)
+      return await command.executeCommand(args, msg.guild!, this.serverClaster);
     } else {
-      const serverRes = ServersClaster.getServer(msg.guild!.id);
+      const serverRes = this.serverClaster.getServer(msg.guild!.id);
       if (serverRes.error) {
         return serverRes;
       }
@@ -45,15 +51,15 @@ export default class commandController {
         return permissionRes;
       }
 
-      return command.executeCommand(args, msg.guild!, server);
+      return await command.executeCommand(args, msg.guild!, server);
     }
   }
 
-  private static isValidMethod(method: string): method is keyof typeof commands {
+  private isValidMethod(method: string): method is keyof typeof commands {
     return method in commands;
   }
 
-  private static isCommandServerless(command: ServerCommand | ServerlessCommand): command is ServerlessCommand {
+  private isCommandServerless(command: ServerCommand | ServerlessCommand): command is ServerlessCommand {
     return command.type === 'serverless';
   }
 }

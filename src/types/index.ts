@@ -25,6 +25,12 @@ export interface ICommand {
   access: TAccessLevel,
 }
 
+export interface IServersFromMongo {
+  serverID: string,
+  adminsRoleID: string,
+  verifiedRoleID: string,
+}
+
 export type TAnswerResult<T> = {
   result: {
     data: T,
