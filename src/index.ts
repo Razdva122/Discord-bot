@@ -4,13 +4,15 @@ import mongoose from 'mongoose';
 
 import { botSecretToken, mongoAuth } from './consts/private';
 
+import User from './models/user';
+
 import commandController from './services/commandController';
 
 const client = new Client();
 
 async function start() {
   try {
-    await mongoose.connect(`mongodb+srv://${mongoAuth.user}:${mongoAuth.password}@cluster0.nm0xd.mongodb.net/servers`, {
+    await mongoose.connect(`mongodb+srv://${mongoAuth.user}:${mongoAuth.password}@cluster0.nm0xd.mongodb.net/amongbot`, {
       useNewUrlParser: true,
       useFindAndModify: false,
     });

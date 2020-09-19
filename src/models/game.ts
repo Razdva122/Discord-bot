@@ -1,32 +1,8 @@
-type TUsers = {
-  [key: string]: IUser
-}
-
-type TGames = {
-  [key: string]: IGame
-}
-
-interface IChangeRating {
-  reason: 'win' | 'lose' | 'revert'
-  gameID: string,
-  rating: {
-    before: number,
-    after: number,
-    diff: number,
-  }
-}
-
-interface IUser {
-  id: string,
-  name: string,
-  gamesID: string[],
-  history: IChangeRating[]
-  rating: number,
-}
+import mongoose, { Document } from 'mongoose';
 
 interface IUserInGame {
-  id: IUser['id'],
-  name: IUser['name'],
+  id: string,
+  name: string,
 }
 
 interface IGame {
@@ -57,8 +33,14 @@ interface IGameCanceled extends IGame {
   crewmate: IUserInGame[],
 }
 
-interface IServer {
-  id: string,
-  users: TUsers,
-  games: TGames,
-}
+type TGame = (IGameInProgress | IGameFinished | IGameCanceled) & Document;
+
+const gameSchema = new mongoose.Schema({
+  id: Number,
+  state: String,
+  verifiedID: String,
+});
+
+const Game = mongoose.model<TGame>('Game', gameSchema);
+
+export default Game;
