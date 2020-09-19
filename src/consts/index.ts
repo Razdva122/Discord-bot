@@ -21,7 +21,7 @@ export const accessLevelToMethods: { readonly [key in TAPIMethods]: number } = {
   'cancelGame': accessLevel.verified,
   'endGame': accessLevel.verified,
   'deleteGame': accessLevel.admins,
-  'updateRoles': accessLevel.admins,
+  'updateRole': accessLevel.admins,
   'help': accessLevel.all,
 }
 
@@ -34,7 +34,7 @@ export const helpText: { readonly [key in TAPIMethods]: string } = {
   'cancelGame': `[${helpLevel[accessLevelToMethods.cancelGame]}] Отменить игру`,
   'endGame': `[${helpLevel[accessLevelToMethods.endGame]}] Закончить игру`,
   'deleteGame': `[${helpLevel[accessLevelToMethods.deleteGame]}] Удалить игру`,
-  'updateRoles': `[${helpLevel[accessLevelToMethods.updateRoles]}] Обновить роли`,
+  'updateRole': `[${helpLevel[accessLevelToMethods.updateRole]}] Обновить роль`,
   'help': `[${helpLevel[accessLevelToMethods.help]}] Помощь`,
 }
 

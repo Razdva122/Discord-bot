@@ -6,7 +6,7 @@ export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
 
 export type TMethodsWithoutServer = 'initServer' | 'deleteServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
-  'updateRoles' | 'help';
+  'updateRole' | 'help';
 export type TAPIMethods = TMethodsWithoutServer | TMethodsWithServer;
 
 export type Parameters<T> = T extends (... args: infer T) => any ? T : never; 

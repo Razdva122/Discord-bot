@@ -61,59 +61,34 @@ export class Server {
   users: { 
     admins: {
       roleID: string,
-      usersID: string[],
     },
     verified: {
       roleID: string,
-      usersID: string[],
     }
   }
   
-  constructor({ adminsRoleID, verifiedRoleID, guild }: { adminsRoleID: string, verifiedRoleID: string, guild: Guild }) {
-    const adminsIDs = this.getUsersIDsByRoleID(guild, adminsRoleID);
-    const verifiedIDs = this.getUsersIDsByRoleID(guild, verifiedRoleID);
+  constructor({ adminsRoleID, verifiedRoleID }: { adminsRoleID: string, verifiedRoleID: string }) {
     this.users = {
       admins: {
         roleID: adminsRoleID,
-        usersID: adminsIDs,
       },
       verified: {
         roleID: verifiedRoleID,
-        usersID: verifiedIDs,
       }
     }
   }
 
-  private getUsersIDsByRoleID(guild: Guild, roleID: string): string[] {
-    return guild.members.cache
-      .filter((user) => user.roles.cache.has(roleID))
-      .map((user) => user.id)
+  public updateRole(roleToChange: 'admins' | 'verified', newRoleID: string) {
+    this.users[roleToChange].roleID === newRoleID;
   }
 
-  public isUserVerified(user: User): boolean {
-    return this.users.verified.usersID.includes(user.id);
+  public isUserVerified(user: User, guild: Guild): boolean {
+    const role = guild.roles.cache.find((role) => role.id === this.users.verified.roleID);
+    return Boolean(role && role.members.has(user.id));
   }
 
-  public isUserAdmin(user: User) {
-    return this.users.admins.usersID.includes(user.id);
-  }
-
-  public updateRoles(guild: Guild): TAnswer {
-    if (!guild.roles.cache.has(this.users.admins.roleID) || !guild.roles.cache.has(this.users.verified.roleID)) {
-      return {
-        error: {
-          msg: 'ID ролей изменилось невозможно обновить роли',
-        }
-      }
-    }
-
-    this.users.admins.usersID = this.getUsersIDsByRoleID(guild, this.users.admins.roleID);
-    this.users.verified.usersID = this.getUsersIDsByRoleID(guild, this.users.verified.roleID);
-
-    return {
-      result: {
-        data: 'Роли успешно обновлены',
-      }
-    }
+  public isUserAdmin(user: User, guild: Guild) {
+    const role = guild.roles.cache.find((role) => role.id === this.users.admins.roleID);
+    return Boolean(role && role.members.has(user.id));
   }
 }

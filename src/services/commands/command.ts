@@ -39,14 +39,14 @@ export abstract class ServerlessCommand extends Command {
 export abstract class ServerCommand extends Command {
   type = 'serverdependent';
 
-  public validatePermission(user: User, server: Server): TAnswer {
+  public validatePermission(user: User, server: Server, guild: Guild): TAnswer {
     let userLevelOfPermissions = accessLevel.all;
 
-    if (server.isUserVerified(user)) {
+    if (server.isUserVerified(user, guild)) {
       userLevelOfPermissions = accessLevel.verified;
     }
 
-    if (server.isUserAdmin(user)) {
+    if (server.isUserAdmin(user, guild)) {
       userLevelOfPermissions = accessLevel.admins;
     }
 

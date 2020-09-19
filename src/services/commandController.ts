@@ -40,7 +40,7 @@ export default class commandController {
 
       const server = serverRes.result.data;
 
-      const permissionRes = command.validatePermission(msg.author, server);
+      const permissionRes = command.validatePermission(msg.author, server, msg.guild!);
       if (permissionRes.error) {
         return permissionRes;
       }
