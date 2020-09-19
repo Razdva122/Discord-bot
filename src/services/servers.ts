@@ -9,8 +9,8 @@ export class ServersClaster {
 
   constructor(serversFromMongo: IServersFromMongo[]) {
     serversFromMongo.forEach((serverInfo) => {
-      const { adminsRoleID, serverID, verifiedRoleID} = serverInfo;
-      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID });
+      const { adminsRoleID, serverID, verifiedRoleID, name } = serverInfo;
+      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID, serverName: name, serverID });
     });
   }
 
@@ -24,7 +24,8 @@ export class ServersClaster {
     }
 
     const createServer = new ServerModel({
-      serverID,
+      name: server.name,
+      id: serverID,
       adminsID: server.users.admins.roleID,
       verifiedID: server.users.verified.roleID,
     });
@@ -73,6 +74,8 @@ export class ServersClaster {
 }
 
 export class Server {
+  readonly serverID: string
+  name: string
   users: { 
     admins: {
       roleID: string,
@@ -82,7 +85,8 @@ export class Server {
     }
   }
   
-  constructor({ adminsRoleID, verifiedRoleID }: { adminsRoleID: string, verifiedRoleID: string }) {
+  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID }: 
+    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string }) {
     this.users = {
       admins: {
         roleID: adminsRoleID,
@@ -91,9 +95,20 @@ export class Server {
         roleID: verifiedRoleID,
       }
     }
+
+    this.name = serverName;
+
+    this.serverID = serverID;
   }
 
-  public updateRole(roleToChange: 'admins' | 'verified', newRoleID: string) {
+  public async updateRole(roleToChange: 'admins' | 'verified', newRoleID: string) {
+    if (roleToChange === 'admins') {
+      await ServerModel.findOneAndUpdate({ id: this.serverID }, { adminsID: newRoleID });
+    }
+
+    if (roleToChange === 'verified') {
+      await ServerModel.findOneAndUpdate({ id: this.serverID }, { verifiedID: newRoleID });
+    }
     this.users[roleToChange].roleID === newRoleID;
   }
 

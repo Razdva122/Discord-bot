@@ -26,6 +26,7 @@ export interface ICommand {
 }
 
 export interface IServersFromMongo {
+  name: string,
   serverID: string,
   adminsRoleID: string,
   verifiedRoleID: string,

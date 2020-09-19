@@ -23,7 +23,7 @@ export default class UpdateRole extends ServerCommand {
     if(!newRoleID) {
       return Err(`На сервере нет роли с именем ${newRole}`);
     }
-    server.updateRole((roleToChange as 'admins' | 'verified'), newRoleID);
+    await server.updateRole((roleToChange as 'admins' | 'verified'), newRoleID);
 
     return Res(`Роль ${roleToChange} обновлена`);
   }

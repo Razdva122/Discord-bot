@@ -33,7 +33,9 @@ export default class InitServer extends ServerlessCommand {
       return Err(`На сервере нет роли с именем ${verifiedRole}`);
     }
 
-    const createServer = await ServersClaster.setNewServer(guild.id, new Server({ adminsRoleID, verifiedRoleID }));
+    const serverName = guild.name;
+
+    const createServer = await ServersClaster.setNewServer(guild.id, new Server({ adminsRoleID, verifiedRoleID, serverName, serverID: guild.id }));
     if (createServer.error) {
       return createServer;
     }

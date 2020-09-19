@@ -23,6 +23,7 @@ async function start() {
 
     const serverClaster = new ServersClaster(servers.map((server) => {
       return {
+        name: server.name,
         serverID: server.id,
         adminsRoleID: server.adminsID,
         verifiedRoleID: server.verifiedID,
