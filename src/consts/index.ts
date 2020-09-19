@@ -16,7 +16,6 @@ export const helpLevel: { readonly [key in ValuesOf<typeof accessLevel>]: string
 
 export const accessLevelToMethods: { readonly [key in TAPIMethods]: number } = {
   'initServer': accessLevel.owner,
-  'deleteServer': accessLevel.owner,
   'startGame': accessLevel.verified,
   'cancelGame': accessLevel.verified,
   'endGame': accessLevel.verified,
@@ -29,7 +28,6 @@ export const methods = Object.keys(accessLevelToMethods);
 
 export const helpText: { readonly [key in TAPIMethods]: string } = {
   'initServer': `[${helpLevel[accessLevelToMethods.initServer]}] Инициализировать бота`,
-  'deleteServer': `[${helpLevel[accessLevelToMethods.deleteServer]}] Выключить бота`,
   'startGame': `[${helpLevel[accessLevelToMethods.startGame]}] Начать игру`,
   'cancelGame': `[${helpLevel[accessLevelToMethods.cancelGame]}] Отменить игру`,
   'endGame': `[${helpLevel[accessLevelToMethods.endGame]}] Закончить игру`,

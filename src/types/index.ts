@@ -4,7 +4,7 @@ export * from './util';
 
 export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
 
-export type TMethodsWithoutServer = 'initServer' | 'deleteServer';
+export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
   'updateRole' | 'help';
 export type TAPIMethods = TMethodsWithoutServer | TMethodsWithServer;
