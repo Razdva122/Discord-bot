@@ -2,9 +2,9 @@ import { User, Guild } from 'discord.js';
 
 import { TAnswer, IServersFromMongo } from '../types';
 
-import { ServerModel } from '../models';
+import { ServerModel, GameStartedModel } from '../models';
 
-import { IUserInGame } from '../models/game';
+import { IUserInGame } from '../models/userInGame';
 import { Res } from '../utils/response';
 
 export class ServersClaster {
@@ -121,6 +121,12 @@ export class Server {
   public async startGame(usersInGame: IUserInGame[]): Promise<TAnswer> {
     this.lastGameID += 1;
     await ServerModel.findOneAndUpdate({ id: this.serverID }, { lastGameID: this.lastGameID });
+    const createGame = new GameStartedModel({
+      id: this.lastGameID,
+      state: 'progress',
+      players: usersInGame,
+    });
+    const res = await createGame.save();
     return Res(`Создана игра с ID: ${this.lastGameID}`);
   }
 
