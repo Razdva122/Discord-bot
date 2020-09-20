@@ -27,6 +27,7 @@ async function start() {
         serverID: server.id,
         adminsRoleID: server.adminsID,
         verifiedRoleID: server.verifiedID,
+        lastGameID: server.lastGameID,
       }
     }));
 
@@ -51,9 +52,9 @@ async function start() {
     
       const commandRes = await commandController.processMessage(msg);
       if (commandRes.error) {
-        msg.channel.send(`[ОШИБКА] ${commandRes.error.msg}`);
+        msg.reply(`[ОШИБКА] ${commandRes.error.msg}`)
       } else {
-        msg.channel.send(commandRes.result.data);
+        msg.reply(commandRes.result.data);
       }
     });
     

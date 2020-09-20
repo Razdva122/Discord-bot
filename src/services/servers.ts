@@ -5,14 +5,15 @@ import { TAnswer, IServersFromMongo } from '../types';
 import { ServerModel } from '../models';
 
 import { IUserInGame } from '../models/game';
+import { Res } from '../utils/response';
 
 export class ServersClaster {
   private claster: { [key: string] : Server } = {};
 
   constructor(serversFromMongo: IServersFromMongo[]) {
     serversFromMongo.forEach((serverInfo) => {
-      const { adminsRoleID, serverID, verifiedRoleID, name } = serverInfo;
-      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID, serverName: name, serverID });
+      const { adminsRoleID, serverID, verifiedRoleID, name, lastGameID } = serverInfo;
+      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID, serverName: name, serverID, lastGameID });
     });
   }
 
@@ -30,6 +31,7 @@ export class ServersClaster {
       id: serverID,
       adminsID: server.users.admins.roleID,
       verifiedID: server.users.verified.roleID,
+      lastGameID: 0,
     });
     const res = await createServer.save();
     this.claster[serverID] = server;
@@ -77,6 +79,7 @@ export class ServersClaster {
 
 export class Server {
   readonly serverID: string
+  lastGameID: number
   name: string
   users: { 
     admins: {
@@ -87,8 +90,8 @@ export class Server {
     }
   }
   
-  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID }: 
-    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string }) {
+  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID, lastGameID }: 
+    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string, lastGameID?: number }) {
     this.users = {
       admins: {
         roleID: adminsRoleID,
@@ -101,6 +104,7 @@ export class Server {
     this.name = serverName;
 
     this.serverID = serverID;
+    this.lastGameID = lastGameID || 0;
   }
 
   public async updateRole(roleToChange: 'admins' | 'verified', newRoleID: string) {
@@ -115,7 +119,9 @@ export class Server {
   }
 
   public async startGame(usersInGame: IUserInGame[]): Promise<TAnswer> {
-
+    this.lastGameID += 1;
+    await ServerModel.findOneAndUpdate({ id: this.serverID }, { lastGameID: this.lastGameID });
+    return Res(`Создана игра с ID: ${this.lastGameID}`);
   }
 
   public isUserVerified(user: User, guild: Guild): boolean {

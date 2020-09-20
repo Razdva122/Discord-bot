@@ -31,7 +31,7 @@ export default class StartGame extends ServerCommand {
     })).values()];
 
     if (channelMembers.length < 4) {
-      return Err(`Не возможно начать игру когда в комнате меньше 4х человек`);
+      // return Err(`Не возможно начать игру когда в комнате меньше 4х человек`);
     }
 
     if (channelMembers.length > 10) {

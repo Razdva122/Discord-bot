@@ -28,6 +28,7 @@ export interface ICommand {
 export interface IServersFromMongo {
   name: string,
   serverID: string,
+  lastGameID: number,
   adminsRoleID: string,
   verifiedRoleID: string,
 }
