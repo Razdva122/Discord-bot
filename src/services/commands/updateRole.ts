@@ -1,4 +1,4 @@
-import { Guild } from 'discord.js';
+import { Guild, Message } from 'discord.js';
 
 import { ServerCommand } from './command';
 import { Server } from '../servers';
@@ -16,7 +16,8 @@ export default class UpdateRole extends ServerCommand {
     return Res('Команда корректна');
   }
 
-  async executeCommand(args: string[], guild: Guild, server: Server): Promise<TAnswer> {
+  async executeCommand(args: string[], msg: Message, server: Server): Promise<TAnswer> {
+    const guild = msg.guild!;
     const [roleToChange, newRole] = args;
 
     const newRoleID = guild.roles.cache.findKey((role) => role.name === newRole);

@@ -1,4 +1,4 @@
-import { User, Guild } from "discord.js";
+import { User, Guild, Message } from "discord.js";
 
 import { mainOwnerID, accessLevel } from "../../consts/index";
 
@@ -33,7 +33,7 @@ export abstract class Command {
 export abstract class ServerlessCommand extends Command {
   type = 'serverless';
 
-  abstract async executeCommand(args: string[], guild: Guild, serversClaster: ServersClaster): Promise<TAnswer>
+  abstract async executeCommand(args: string[], msg: Message, serversClaster: ServersClaster): Promise<TAnswer>
 }
 
 export abstract class ServerCommand extends Command {
@@ -61,5 +61,5 @@ export abstract class ServerCommand extends Command {
     return Err('Не достаточно прав для данной команды');
   }
 
-  abstract async executeCommand(args: string[], guild: Guild, server: Server): Promise<TAnswer>
+  abstract async executeCommand(args: string[], msg: Message, server: Server): Promise<TAnswer>
 }

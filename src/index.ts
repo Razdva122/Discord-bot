@@ -53,7 +53,7 @@ async function start() {
       if (commandRes.error) {
         msg.channel.send(`[ОШИБКА] ${commandRes.error.msg}`);
       } else {
-        msg.channel.send(`[УСПЕХ] ${commandRes.result.data}`);
+        msg.channel.send(commandRes.result.data);
       }
     });
     

@@ -26,19 +26,17 @@ export default class commandController {
 
     const command = commands[method];
 
+    if (args[0] === 'help') {
+      return Res(command.help);
+    }
+
     const validateRes = command.validateCommand(args);
     if (validateRes.error) {
       return validateRes;
     }
 
-    if (this.isCommandServerless(command)) {
-      const permissionRes = command.validateOwnerPermission(msg.author);
-      if (permissionRes.error) {
-        return permissionRes;
-      }
-
-      return await command.executeCommand(args, msg.guild!, this.serverClaster);
-    } else {
+    if (this.isServerCommand(command)) {
+      command
       const serverRes = this.serverClaster.getServer(msg.guild!.id);
       if (serverRes.error) {
         return serverRes;
@@ -51,7 +49,14 @@ export default class commandController {
         return permissionRes;
       }
 
-      return await command.executeCommand(args, msg.guild!, server);
+      return await command.executeCommand(args, msg, server);
+    } else {
+      const permissionRes = command.validateOwnerPermission(msg.author);
+      if (permissionRes.error) {
+        return permissionRes;
+      }
+
+      return await command.executeCommand(args, msg, this.serverClaster);
     }
   }
 
@@ -59,7 +64,7 @@ export default class commandController {
     return method in commands;
   }
 
-  private isCommandServerless(command: ServerCommand | ServerlessCommand): command is ServerlessCommand {
-    return command.type === 'serverless';
+  private isServerCommand(command: ServerCommand | ServerlessCommand): command is ServerCommand {
+    return command.type === 'serverdependent';
   }
 }

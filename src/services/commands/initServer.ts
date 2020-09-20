@@ -1,4 +1,4 @@
-import { Guild } from 'discord.js';
+import { Message } from 'discord.js';
 
 import { ServerlessCommand } from './command';
 import { ServersClaster, Server } from '../servers';
@@ -20,7 +20,8 @@ export default class InitServer extends ServerlessCommand {
     return Res('Команда корректна');
   }
 
-  async executeCommand(args: string[], guild: Guild, ServersClaster: ServersClaster): Promise<TAnswer> {
+  async executeCommand(args: string[], msg: Message, ServersClaster: ServersClaster): Promise<TAnswer> {
+    const guild = msg.guild!;
     const [adminsRole, verifiedRole] = args;
 
     const adminsRoleID = guild.roles.cache.findKey((role) => role.name === adminsRole);

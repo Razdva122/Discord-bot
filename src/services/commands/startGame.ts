@@ -1,14 +1,18 @@
 import { ServerCommand } from './command';
 
-import { Res } from "../../utils/response";
+import { Res, Err } from "../../utils/response";
 
 import { helpText } from '../../consts';
 
 import { TAnswer } from "../../types";
 
-// !help
-export default class Help extends ServerCommand {
-  validateCommand() {
+// !startGame roomName
+export default class StartGame extends ServerCommand {
+  validateCommand(args: string[]) {
+    const [roomName] = args;
+    if (!roomName) {
+      return Err('Нужно передать название канала в котором стартует игра');
+    }
     return Res('Команда корректна');
   }
 

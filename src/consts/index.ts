@@ -16,24 +16,34 @@ export const helpLevel: { readonly [key in ValuesOf<typeof accessLevel>]: string
 
 export const accessLevelToMethods: { readonly [key in TAPIMethods]: number } = {
   'initServer': accessLevel.owner,
+  'updateRole': accessLevel.owner,
+  'deleteGame': accessLevel.admins,
   'startGame': accessLevel.verified,
   'cancelGame': accessLevel.verified,
   'endGame': accessLevel.verified,
-  'deleteGame': accessLevel.admins,
-  'updateRole': accessLevel.admins,
   'help': accessLevel.all,
 }
 
 export const methods = Object.keys(accessLevelToMethods);
 
 export const helpText: { readonly [key in TAPIMethods]: string } = {
-  'initServer': `[${helpLevel[accessLevelToMethods.initServer]}] Инициализировать бота`,
-  'startGame': `[${helpLevel[accessLevelToMethods.startGame]}] Начать игру`,
-  'cancelGame': `[${helpLevel[accessLevelToMethods.cancelGame]}] Отменить игру`,
-  'endGame': `[${helpLevel[accessLevelToMethods.endGame]}] Закончить игру`,
-  'deleteGame': `[${helpLevel[accessLevelToMethods.deleteGame]}] Удалить игру`,
-  'updateRole': `[${helpLevel[accessLevelToMethods.updateRole]}] Обновить роль`,
-  'help': `[${helpLevel[accessLevelToMethods.help]}] Помощь`,
+  'initServer': `{${helpLevel[accessLevelToMethods.initServer]}} Инициализировать бота`,
+  'updateRole': `{${helpLevel[accessLevelToMethods.updateRole]}} Обновить роль`,
+  'deleteGame': `{${helpLevel[accessLevelToMethods.deleteGame]}} Удалить игру`,
+  'startGame': `{${helpLevel[accessLevelToMethods.startGame]}} Начать игру`,
+  'cancelGame': `{${helpLevel[accessLevelToMethods.cancelGame]}} Отменить игру`,
+  'endGame': `{${helpLevel[accessLevelToMethods.endGame]}} Закончить игру`,
+  'help': `{${helpLevel[accessLevelToMethods.help]}} Помощь`,
 }
+
+export const commandHelp: { readonly [key in TAPIMethods]: string } = {
+  'initServer': `!initServer [Роль админов] [Роль верифицированных пользователей]`,
+  'updateRole': `!updateRole [admins или verified] [Новая роль]`,
+  'deleteGame': `!deleteGame [gameID]`,
+  'startGame': `!startGame [Название голосовой комнаты]`,
+  'cancelGame': `!cancelGame [gameID]`,
+  'endGame': `!endGame [gameID] [win (победа Импосторов) или lose (поражение)] [@impostor1] [@impostor2]`,
+  'help': `!help`,
+};
 
 export const mainOwnerID = '278796523817402369';
