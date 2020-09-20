@@ -1,5 +1,7 @@
 import { User, Message } from 'discord.js';
 
+import { IUserInGame } from '../models/userInGame';
+
 export * from './util';
 
 export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
@@ -49,3 +51,11 @@ export type TAnswerError = {
 
 export type TAnswer<T = string> = TAnswerResult<T> | TAnswerError;
 
+export type TGameResult = 'win' | 'lose';
+
+export interface IGameFinishState {
+  id: number,
+  impostorsRes: TGameResult,
+  impostors: IUserInGame[],
+  crewmates: IUserInGame[],
+}

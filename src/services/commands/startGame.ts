@@ -25,10 +25,10 @@ export default class StartGame extends ServerCommand {
     if (!room) {
       return Err(`Не смогли найти комнату с именем ${roomName}`);
     }
-    const channelMembers = [...room.members.mapValues((member) => ({
+    const channelMembers = room.members.array().map((member) => ({
       id: member.id,
       name: member.user.username
-    })).values()];
+    }));
 
     if (channelMembers.length < 4) {
       // return Err(`Не возможно начать игру когда в комнате меньше 4х человек`);

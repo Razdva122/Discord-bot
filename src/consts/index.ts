@@ -2,6 +2,8 @@ import { TAccessLevel, ValuesOf, TAPIMethods } from '../types';
 
 export const defaultRating = 2000;
 
+export const gameChangeRating = 25;
+
 export const accessLevel: { readonly [key in TAccessLevel]: number } = {
   all: 0,
   verified: 1,

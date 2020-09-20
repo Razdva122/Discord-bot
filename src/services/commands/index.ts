@@ -3,6 +3,7 @@ import UpdateRole from './updateRole';
 import Help from './help';
 import StartGame from './startGame';
 import CancelGame from './cancelGame';
+import EndGame from './endGame';
 
 import { accessLevelToMethods, commandHelp } from '../../consts';
 
@@ -12,4 +13,5 @@ export default {
   '!help': new Help(accessLevelToMethods.help, commandHelp.help),
   '!startGame': new StartGame(accessLevelToMethods.startGame, commandHelp.startGame),
   '!cancelGame': new CancelGame(accessLevelToMethods.cancelGame, commandHelp.cancelGame),
+  '!endGame': new EndGame(accessLevelToMethods.endGame, commandHelp.endGame),
 }

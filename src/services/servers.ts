@@ -1,14 +1,14 @@
-import { User, Guild, NewsChannel } from 'discord.js';
+import { User, Guild, Message } from 'discord.js';
 
-import { TAnswer, IServersFromMongo } from '../types';
+import { TAnswer, IServersFromMongo, TGameResult, IGameFinishState } from '../types';
 
-import { ServerModel, GameStartedModel, GameCanceledModel, UserModel } from '../models';
+import { ServerModel, GameStartedModel, GameCanceledModel, UserModel, GameFinishedModel } from '../models';
 
-import { defaultRating } from '../consts';
+import { defaultRating, gameChangeRating } from '../consts';
 
 import { IUserInGame } from '../models/userInGame';
+import { IGameFinished } from '../models/gameFinished';
 import { Res, Err } from '../utils/response';
-import { promises } from 'fs';
 
 export class ServersClaster {
   private claster: { [key: string] : Server } = {};
@@ -140,6 +140,125 @@ export class Server {
     }));
 
     return Res(`Создана игра с ID: ${this.lastGameID}, Участники: ${usersInGame.map((user) => user.name).join()}`);
+  }
+
+  public async endGame(gameID: number, gameStatus: TGameResult, msg: Message): Promise<TAnswer> {
+    const prevGameState = await GameStartedModel.findOne({ id: gameID });
+    if (!prevGameState) {
+      return Err(`Не найдена игра с ID: ${gameID}`);
+    }
+
+    const mentions = msg.mentions.members;
+
+    if (!mentions) {
+      return Err(`В команде не указаны импостеры`);
+    }
+
+    const impostors = mentions.array().map((member) => {
+      return { 
+        id: member.id,
+        name: member.user.username,
+      }
+    });
+
+    if (impostors.length > 2 || impostors.length < 1) {
+      return Err(`Количество импостеров от 1 до 2, в команде упомянуто ${impostors.length}`);
+    }
+
+    if (!prevGameState.players.some((player) => player.id === impostors[0].id)) {
+      return Err(`Игрок ${impostors[0].name} не был в игре id: ${gameID} на момент ее создания`);
+    }
+
+    if (impostors[1] && !prevGameState.players.some((player) => player.id === impostors[1].id)) {
+      return Err(`Игрок ${impostors[1].name} не был в игре id: ${gameID} на момент ее создания`);
+    }
+
+    const deletePrevGame = await GameStartedModel.findOneAndDelete({ id: gameID });
+
+    if (!deletePrevGame) {
+      return Err(`Не найдена игра с ID: ${gameID}`);
+    }
+
+    const crewmates = deletePrevGame.players.filter((player) => {
+      return player.id !== impostors[0].id && player.id !== impostors[0]?.id;
+    })
+
+    const finishGame = await this.updateRatingAndFinishGame({
+      id: gameID,
+      impostorsRes: gameStatus,
+      impostors,
+      crewmates,
+    });
+
+    if (finishGame.error) {
+      return finishGame;
+    }
+
+    const finishedGame = new GameFinishedModel(finishGame.result.data);
+
+    await finishedGame.save();
+
+    return Res(`Игра ID: ${gameID} успешно завершена`);
+  }
+
+  private async updateRatingAndFinishGame(state: IGameFinishState): Promise<TAnswer<IGameFinished>> {
+    const changeRatingCrewmates = state.impostorsRes === 'lose' ? gameChangeRating : -gameChangeRating;
+    const changeRatingImpostors = (changeRatingCrewmates * state.crewmates.length) / state.impostors.length;
+
+    const crewmatesRes: { [key in TGameResult]: TGameResult} = {
+      win: 'lose',
+      lose: 'win',
+    };
+
+    const players = [...state.impostors, ...state.crewmates];
+    const gameResult: IGameFinished = {
+      id: state.id,
+      state: "finished",
+      win: state.impostorsRes === 'lose' ? 'crewmates' : 'impostors',
+      impostors: state.impostors,
+      crewmates: state.crewmates,
+      result: [],
+    };
+
+    await Promise.all(players.map(async (player) => {
+      const playerIsImpostor = state.impostors.some((impostor) => impostor.id === player.id);
+      const diff = playerIsImpostor ? changeRatingImpostors : changeRatingCrewmates;
+      const updatedPlayer = await UserModel.findOneAndUpdate(
+        { id: player.id }, 
+        { 
+          $inc: { rating: diff },
+          $push: { 
+            gamesID: state.id,
+          },
+        }
+      );
+
+      if (!updatedPlayer) {
+        console.log(`Error updateRatingAndFinishGame ID:${player.id} dont updated`);
+        return;
+      }
+
+      const addGameInHistory = await UserModel.findOneAndUpdate(
+        { id: player.id },
+        {
+          $push: {
+            history: {
+              reason: playerIsImpostor ? state.impostorsRes : crewmatesRes[state.impostorsRes],
+              gameID: state.id,
+              rating: {
+                before: updatedPlayer.rating - diff,
+                after: updatedPlayer.rating,
+                diff,
+              },
+            }
+          }
+        }
+      )
+
+      gameResult.result.push({ name: player.name, before: updatedPlayer.rating - diff, diff });
+    }));
+    
+    return Res(gameResult);
   }
 
   public async cancelGame(gameID: number): Promise<TAnswer> {

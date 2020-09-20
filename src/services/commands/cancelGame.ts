@@ -7,7 +7,7 @@ import { Res, Err } from "../../utils/response";
 
 import { TAnswer } from "../../types";
 
-// !cancelGame gameID
+// !cancelGame [gameID]
 export default class CancelGame extends ServerCommand {
   validateCommand(args: string[]) {
     const [gameID] = args;

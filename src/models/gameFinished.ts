@@ -2,12 +2,12 @@ import mongoose, { Document } from 'mongoose';
 
 import userInGameSchema, { IUserInGame } from './userInGame';
 
-interface IGameFinished extends Document {
+export interface IGameFinished {
   id: number,
   state: 'finished',
-  win: 'impostors' | 'crewmate',
+  win: 'impostors' | 'crewmates',
   impostors: IUserInGame[],
-  crewmate: IUserInGame[],
+  crewmates: IUserInGame[],
   result: {
     name: IUserInGame['name'],
     before: number,
@@ -15,11 +15,13 @@ interface IGameFinished extends Document {
   }[],
 }
 
+type TGameFinishedModel = Document & IGameFinished;
+
 const gameStartedSchema = new mongoose.Schema({
   id: Number,
   state: String,
   impostors: [userInGameSchema],
-  crewmate: [userInGameSchema],
+  crewmates: [userInGameSchema],
   result: [{
     name: String,
     before: Number,
@@ -27,4 +29,4 @@ const gameStartedSchema = new mongoose.Schema({
   }],
 });
 
-export const GameFinishedModel = mongoose.model<IGameFinished>('GameFinished', gameStartedSchema);
+export const GameFinishedModel = mongoose.model<TGameFinishedModel>('GameFinished', gameStartedSchema);
