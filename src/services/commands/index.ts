@@ -2,6 +2,7 @@ import InitServer from './initServer';
 import UpdateRole from './updateRole';
 import Help from './help';
 import StartGame from './startGame';
+import CancelGame from './cancelGame';
 
 import { accessLevelToMethods, commandHelp } from '../../consts';
 
@@ -10,4 +11,5 @@ export default {
   '!updateRole': new UpdateRole(accessLevelToMethods.updateRole, commandHelp.updateRole),
   '!help': new Help(accessLevelToMethods.help, commandHelp.help),
   '!startGame': new StartGame(accessLevelToMethods.startGame, commandHelp.startGame),
+  '!cancelGame': new CancelGame(accessLevelToMethods.cancelGame, commandHelp.cancelGame),
 }

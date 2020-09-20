@@ -2,12 +2,12 @@ import { User, Guild, NewsChannel } from 'discord.js';
 
 import { TAnswer, IServersFromMongo } from '../types';
 
-import { ServerModel, GameStartedModel, UserModel } from '../models';
+import { ServerModel, GameStartedModel, GameCanceledModel, UserModel } from '../models';
 
 import { defaultRating } from '../consts';
 
 import { IUserInGame } from '../models/userInGame';
-import { Res } from '../utils/response';
+import { Res, Err } from '../utils/response';
 import { promises } from 'fs';
 
 export class ServersClaster {
@@ -130,6 +130,7 @@ export class Server {
       players: usersInGame,
     });
     const res = await createGame.save();
+
     await Promise.all(usersInGame.map(async (user) => {
       const userInDB = await UserModel.findOneAndUpdate({ id: user.id }, { name: user.name });
       if (!userInDB) {
@@ -137,7 +138,25 @@ export class Server {
         await newUser.save();
       }
     }));
+
     return Res(`Создана игра с ID: ${this.lastGameID}, Участники: ${usersInGame.map((user) => user.name).join()}`);
+  }
+
+  public async cancelGame(gameID: number): Promise<TAnswer> {
+    const prevGameState = await GameStartedModel.findOneAndDelete({ id: gameID });
+    if (!prevGameState) {
+      return Err(`Не найдена игра с ID: ${gameID}`);
+    }
+
+    const canceledGame = new GameCanceledModel({
+      id: prevGameState.id,
+      state: 'canceled',
+      players: prevGameState.players,
+    });
+
+    await canceledGame.save();
+
+    return Res(`Игра ID: ${gameID} отменена`);
   }
 
   public isUserVerified(user: User, guild: Guild): boolean {
