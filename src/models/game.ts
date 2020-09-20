@@ -1,6 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 
-interface IUserInGame {
+export interface IUserInGame {
   id: string,
   name: string,
 }
@@ -35,10 +35,23 @@ interface IGameCanceled extends IGame {
 
 type TGame = (IGameInProgress | IGameFinished | IGameCanceled) & Document;
 
+const userInGameSchema = new mongoose.Schema({
+  id: String,
+  name: String,
+});
+
 const gameSchema = new mongoose.Schema({
   id: Number,
   state: String,
-  verifiedID: String,
+  win: String,
+  players: [userInGameSchema],
+  impostors: [userInGameSchema],
+  crewmate: [userInGameSchema],
+  result: [{
+    name: String,
+    before: Number,
+    diff: Number,
+  }]
 });
 
 export const GameModel = mongoose.model<TGame>('Game', gameSchema);

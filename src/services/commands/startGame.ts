@@ -1,8 +1,9 @@
 import { ServerCommand } from './command';
+import { Server } from '../servers';
+
+import { Message } from 'discord.js';
 
 import { Res, Err } from "../../utils/response";
-
-import { helpText } from '../../consts';
 
 import { TAnswer } from "../../types";
 
@@ -16,10 +17,27 @@ export default class StartGame extends ServerCommand {
     return Res('Команда корректна');
   }
 
-  async executeCommand(): Promise<TAnswer> {
-    const msg = Object.entries(helpText).reduce((acc, [command, description]) => {
-      return `${acc}\n!${command} ${description}`;
-    }, `\n!Команда {Уровень доступа} Описание\n-----------------------`) + `\n\nИспользуйте приписку help после любой команды, чтобы уточнить параметры.`;
-    return Res(msg);
+  async executeCommand(args: string[], msg: Message, server: Server): Promise<TAnswer> {
+    const guild = msg.guild!;
+    const [roomName] = args;
+
+    const room = guild.channels.cache.find((channel) => channel.type === 'voice' && channel.name === roomName);
+    if (!room) {
+      return Err(`Не смогли найти комнату с именем ${roomName}`);
+    }
+    const channelMembers = [...room.members.mapValues((member) => ({
+      id: member.id,
+      name: member.user.username
+    })).values()];
+
+    if (channelMembers.length < 4) {
+      return Err(`Не возможно начать игру когда в комнате меньше 4х человек`);
+    }
+
+    if (channelMembers.length > 10) {
+      return Err(`Не возможно начать игру когда в комнате больше 10 человек`);
+    }
+
+    return await server.startGame(channelMembers);
   }
 }

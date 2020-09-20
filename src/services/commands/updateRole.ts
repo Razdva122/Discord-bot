@@ -1,4 +1,4 @@
-import { Guild, Message } from 'discord.js';
+import { Message } from 'discord.js';
 
 import { ServerCommand } from './command';
 import { Server } from '../servers';

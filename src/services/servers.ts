@@ -4,6 +4,8 @@ import { TAnswer, IServersFromMongo } from '../types';
 
 import { ServerModel } from '../models';
 
+import { IUserInGame } from '../models/game';
+
 export class ServersClaster {
   private claster: { [key: string] : Server } = {};
 
@@ -110,6 +112,10 @@ export class Server {
       await ServerModel.findOneAndUpdate({ id: this.serverID }, { verifiedID: newRoleID });
     }
     this.users[roleToChange].roleID === newRoleID;
+  }
+
+  public async startGame(usersInGame: IUserInGame[]): Promise<TAnswer> {
+
   }
 
   public isUserVerified(user: User, guild: Guild): boolean {
