@@ -139,7 +139,7 @@ export class Server {
       }
     }));
 
-    return Res(`Создана игра с ID: ${this.lastGameID}, Участники: ${usersInGame.map((user) => user.name).join()}`);
+    return Res(`Создана игра с ID: ${this.lastGameID}. Участники: ${usersInGame.map((user) => user.name).join(', ')}`);
   }
 
   public async endGame(gameID: number, gameStatus: TGameResult, msg: Message): Promise<TAnswer> {
@@ -198,12 +198,23 @@ export class Server {
 
     await finishedGame.save();
 
-    return Res(`Игра ID: ${gameID} успешно завершена`);
+    const firstLine = `Игра ID: ${gameID} успешно завершена`;
+    const secondLine = `Победили ${finishGame.result.data.win}`;
+    const crewmatesInString = finishGame.result.data.result.crewmates.map((user) => {
+      return `${user.name} ${user.before} (${user.diff < 0 ? '' : '+'}${user.diff})`;
+    }).join(' |');
+    const crewmatesLine = `Crewmates: ${crewmatesInString}`;
+    const impostorsInString = finishGame.result.data.result.impostors.map((user) => {
+      return `${user.name} ${user.before} (${user.diff < 0 ? '' : '+'}${user.diff})`;
+    }).join(' |');
+    const impostorsLine = `Impostors: ${impostorsInString}`;
+
+    return Res(`${firstLine}\n${secondLine}\n${crewmatesLine}\n${impostorsLine}`);
   }
 
   private async updateRatingAndFinishGame(state: IGameFinishState): Promise<TAnswer<IGameFinished>> {
     const changeRatingCrewmates = state.impostorsRes === 'lose' ? gameChangeRating : -gameChangeRating;
-    const changeRatingImpostors = (changeRatingCrewmates * state.crewmates.length) / state.impostors.length;
+    const changeRatingImpostors = -((changeRatingCrewmates * state.crewmates.length) / state.impostors.length);
 
     const crewmatesRes: { [key in TGameResult]: TGameResult} = {
       win: 'lose',
@@ -217,13 +228,16 @@ export class Server {
       win: state.impostorsRes === 'lose' ? 'crewmates' : 'impostors',
       impostors: state.impostors,
       crewmates: state.crewmates,
-      result: [],
+      result: {
+        crewmates: [],
+        impostors: [],
+      },
     };
 
     await Promise.all(players.map(async (player) => {
       const playerIsImpostor = state.impostors.some((impostor) => impostor.id === player.id);
       const diff = playerIsImpostor ? changeRatingImpostors : changeRatingCrewmates;
-      const updatedPlayer = await UserModel.findOneAndUpdate(
+      const playerFromDB = await UserModel.findOneAndUpdate(
         { id: player.id }, 
         { 
           $inc: { rating: diff },
@@ -233,7 +247,7 @@ export class Server {
         }
       );
 
-      if (!updatedPlayer) {
+      if (!playerFromDB) {
         console.log(`Error updateRatingAndFinishGame ID:${player.id} dont updated`);
         return;
       }
@@ -246,8 +260,8 @@ export class Server {
               reason: playerIsImpostor ? state.impostorsRes : crewmatesRes[state.impostorsRes],
               gameID: state.id,
               rating: {
-                before: updatedPlayer.rating - diff,
-                after: updatedPlayer.rating,
+                before: playerFromDB.rating,
+                after: playerFromDB.rating + diff,
                 diff,
               },
             }
@@ -255,9 +269,10 @@ export class Server {
         }
       )
 
-      gameResult.result.push({ name: player.name, before: updatedPlayer.rating - diff, diff });
+      gameResult.result[playerIsImpostor ? 'impostors' : 'crewmates']
+        .push({ name: player.name, before: playerFromDB.rating, diff });
     }));
-    
+
     return Res(gameResult);
   }
 

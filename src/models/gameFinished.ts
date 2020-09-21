@@ -9,10 +9,17 @@ export interface IGameFinished {
   impostors: IUserInGame[],
   crewmates: IUserInGame[],
   result: {
-    name: IUserInGame['name'],
-    before: number,
-    diff: number,
-  }[],
+    impostors: {
+      name: IUserInGame['name'],
+      before: number,
+      diff: number,
+    }[],
+    crewmates: {
+      name: IUserInGame['name'],
+      before: number,
+      diff: number,
+    }[],
+  },
 }
 
 type TGameFinishedModel = Document & IGameFinished;
