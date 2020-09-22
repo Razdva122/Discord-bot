@@ -30,12 +30,8 @@ export default class StartGame extends ServerCommand {
       name: member.user.username
     }));
 
-    if (channelMembers.length < 4) {
-      // return Err(`Не возможно начать игру когда в комнате меньше 4х человек`);
-    }
-
-    if (channelMembers.length > 10) {
-      return Err(`Не возможно начать игру когда в комнате больше 10 человек`);
+    if (channelMembers.length !== 5 && channelMembers.length !== 10) {
+      return Err(`Игру можно начать только на 5 или 10 человек. В комнате сейчас ${channelMembers.length}`);
     }
 
     return await server.startGame(channelMembers);

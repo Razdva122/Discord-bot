@@ -4,7 +4,7 @@ import { TAnswer, IServersFromMongo, TGameResult, IGameFinishState } from '../ty
 
 import { ServerModel, GameStartedModel, GameCanceledModel, UserModel, GameFinishedModel } from '../models';
 
-import { defaultRating, gameChangeRating } from '../consts';
+import { defaultRating, ratingChange } from '../consts';
 
 import { IUserInGame } from '../models/userInGame';
 import { IGameFinished } from '../models/gameFinished';
@@ -161,8 +161,16 @@ export class Server {
       }
     });
 
-    if (impostors.length > 2 || impostors.length < 1) {
-      return Err(`Количество импостеров от 1 до 2, в команде упомянуто ${impostors.length}`);
+    if (prevGameState.players.length === 5) {
+      if (impostors.length !== 1) {
+        return Err(`В игре на 5 человек, должен быть один импостер`);
+      }
+    }
+
+    if (prevGameState.players.length === 10) {
+      if (impostors.length !== 2) {
+        return Err(`В игре на 10 человек, должно быть два импостера`);
+      }
     }
 
     if (!prevGameState.players.some((player) => player.id === impostors[0].id)) {
@@ -202,20 +210,17 @@ export class Server {
     const secondLine = `Победили ${finishGame.result.data.win}`;
     const crewmatesInString = finishGame.result.data.result.crewmates.map((user) => {
       return `${user.name} ${user.before} (${user.diff < 0 ? '' : '+'}${user.diff})`;
-    }).join(' |');
+    }).join(' | ');
     const crewmatesLine = `Crewmates: ${crewmatesInString}`;
     const impostorsInString = finishGame.result.data.result.impostors.map((user) => {
       return `${user.name} ${user.before} (${user.diff < 0 ? '' : '+'}${user.diff})`;
-    }).join(' |');
+    }).join(' | ');
     const impostorsLine = `Impostors: ${impostorsInString}`;
 
     return Res(`${firstLine}\n${secondLine}\n${crewmatesLine}\n${impostorsLine}`);
   }
 
   private async updateRatingAndFinishGame(state: IGameFinishState): Promise<TAnswer<IGameFinished>> {
-    const changeRatingCrewmates = state.impostorsRes === 'lose' ? gameChangeRating : -gameChangeRating;
-    const changeRatingImpostors = -((changeRatingCrewmates * state.crewmates.length) / state.impostors.length);
-
     const crewmatesRes: { [key in TGameResult]: TGameResult} = {
       win: 'lose',
       lose: 'win',
@@ -236,41 +241,32 @@ export class Server {
 
     await Promise.all(players.map(async (player) => {
       const playerIsImpostor = state.impostors.some((impostor) => impostor.id === player.id);
-      const diff = playerIsImpostor ? changeRatingImpostors : changeRatingCrewmates;
-      const playerFromDB = await UserModel.findOneAndUpdate(
-        { id: player.id }, 
-        { 
-          $inc: { rating: diff },
-          $push: { 
-            gamesID: state.id,
-          },
-        }
-      );
+      const diff = playerIsImpostor 
+        ? state.impostorsRes === 'win' ? ratingChange.impostor : -ratingChange.impostor
+        : state.impostorsRes === 'lose' ? ratingChange.crewmate : -ratingChange.crewmate;
+      const playerFromDB = await UserModel.findOne({ id: player.id });
 
       if (!playerFromDB) {
         console.log(`Error updateRatingAndFinishGame ID:${player.id} dont updated`);
         return;
       }
 
-      const addGameInHistory = await UserModel.findOneAndUpdate(
-        { id: player.id },
-        {
-          $push: {
-            history: {
-              reason: playerIsImpostor ? state.impostorsRes : crewmatesRes[state.impostorsRes],
-              gameID: state.id,
-              rating: {
-                before: playerFromDB.rating,
-                after: playerFromDB.rating + diff,
-                diff,
-              },
-            }
-          }
-        }
-      )
+      playerFromDB.rating += diff;
+      playerFromDB.gamesID.push(state.id);
+      playerFromDB.history.push({
+        reason: playerIsImpostor ? state.impostorsRes : crewmatesRes[state.impostorsRes],
+        gameID: state.id,
+        rating: {
+          before: playerFromDB.rating - diff,
+          after: playerFromDB.rating,
+          diff,
+        },
+      });
+
+      await playerFromDB.save();
 
       gameResult.result[playerIsImpostor ? 'impostors' : 'crewmates']
-        .push({ name: player.name, before: playerFromDB.rating, diff });
+        .push({ name: player.name, before: playerFromDB.rating - diff, diff });
     }));
 
     return Res(gameResult);

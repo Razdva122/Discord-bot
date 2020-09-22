@@ -2,7 +2,7 @@ import { Client } from 'discord.js';
 
 import mongoose from 'mongoose';
 
-import { botSecretToken, mongoAuth } from './consts/private';
+import { settings } from './consts/private';
 
 import { ServerModel } from './models';
 
@@ -14,7 +14,7 @@ const client = new Client();
 
 async function start() {
   try {
-    await mongoose.connect(`mongodb+srv://${mongoAuth.user}:${mongoAuth.password}@cluster0.nm0xd.mongodb.net/amongbot`, {
+    await mongoose.connect(`mongodb+srv://${settings.mongoUser.user}:${settings.mongoUser.password}@cluster0.nm0xd.mongodb.net/${settings.mongoDB}`, {
       useNewUrlParser: true,
       useFindAndModify: false,
     });
@@ -58,7 +58,7 @@ async function start() {
       }
     });
     
-    client.login(botSecretToken);
+    client.login(settings.botSecretToken);
   } catch (e) {
     console.log(e);
   }

@@ -24,16 +24,23 @@ export interface IGameFinished {
 
 type TGameFinishedModel = Document & IGameFinished;
 
-const gameStartedSchema = new mongoose.Schema({
+const gameFinishedSchema = new mongoose.Schema({
   id: Number,
   state: String,
   impostors: [userInGameSchema],
   crewmates: [userInGameSchema],
-  result: [{
-    name: String,
-    before: Number,
-    diff: Number,
-  }],
+  result: {
+    impostors: [{
+      name: String,
+      before: Number,
+      diff: Number,
+    }],
+    crewmates: [{
+      name: String,
+      before: Number,
+      diff: Number,
+    }],
+  },
 });
 
-export const GameFinishedModel = mongoose.model<TGameFinishedModel>('GameFinished', gameStartedSchema);
+export const GameFinishedModel = mongoose.model<TGameFinishedModel>('GameFinished', gameFinishedSchema);
