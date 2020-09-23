@@ -4,6 +4,8 @@ import Help from './help';
 import StartGame from './startGame';
 import CancelGame from './cancelGame';
 import EndGame from './endGame';
+import InitLeaderboard from './initLeaderboard';
+
 
 import { accessLevelToMethods, commandHelp } from '../../consts';
 
@@ -14,4 +16,5 @@ export default {
   '!startGame': new StartGame(accessLevelToMethods.startGame, commandHelp.startGame),
   '!cancelGame': new CancelGame(accessLevelToMethods.cancelGame, commandHelp.cancelGame),
   '!endGame': new EndGame(accessLevelToMethods.endGame, commandHelp.endGame),
+  '!initLeaderboard': new InitLeaderboard(accessLevelToMethods.initLeaderboard, commandHelp.initLeaderboard),
 }
