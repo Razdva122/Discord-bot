@@ -4,7 +4,7 @@ import { TAnswer, IServersFromMongo, TGameResult, IGameFinishState } from '../ty
 
 import { ServerModel, GameStartedModel, GameCanceledModel, UserModel, GameFinishedModel } from '../models';
 
-import { defaultRating, ratingChange } from '../consts';
+import { defaultRating, ratingChange, usersInLeaderboard } from '../consts';
 
 import { IUserInGame } from '../models/userInGame';
 import { IGameFinished } from '../models/gameFinished';
@@ -82,6 +82,7 @@ export class ServersClaster {
 
 export class Server {
   readonly serverID: string
+  private leaderboardMsg: null | Message = null;
   lastGameID: number
   name: string
   users: { 
@@ -217,6 +218,8 @@ export class Server {
     }).join(' | ');
     const impostorsLine = `Impostors: ${impostorsInString}`;
 
+    this.updateLeaderboard();
+
     return Res(`${firstLine}\n${secondLine}\n${crewmatesLine}\n${impostorsLine}`);
   }
 
@@ -287,6 +290,39 @@ export class Server {
     await canceledGame.save();
 
     return Res(`Игра ID: ${gameID} отменена`);
+  }
+
+  public async initLeaderboard(msg: Message): Promise<void> {
+    const leaderboard = await this.generateLeaderboard();
+    this.leaderboardMsg = await msg.channel.send(leaderboard);
+  }
+
+  private async updateLeaderboard(): Promise<void> {
+    if (!this.leaderboardMsg) {
+      return;
+    }
+    const leaderboard = await this.generateLeaderboard();
+
+    await this.leaderboardMsg.edit(leaderboard);
+  }
+
+  private async generateLeaderboard() {
+    const bestUsers = await UserModel.find().sort({ rating: -1 }).limit(usersInLeaderboard);
+
+    const positions = bestUsers.map((user, index) => index + 1).join('\n');
+    const nicknames = bestUsers.map((user) => user.name).join('\n');
+    const rating = bestUsers.map((user) => user.rating).join('\n');
+
+    return { embed: {
+        color: 3447003,
+        title: `__**Лидерборд ТОП-${bestUsers.length}**__`,
+        fields: [
+          { name: "Позиция", value: positions, inline: true},
+          { name: "Никнейм", value: nicknames, inline: true},
+          { name: "Рейтинг", value: rating, inline: true},
+        ]
+      }
+    };
   }
 
   public isUserVerified(user: User, guild: Guild): boolean {
