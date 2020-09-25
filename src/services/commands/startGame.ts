@@ -34,6 +34,6 @@ export default class StartGame extends ServerCommand {
       return Err(`Игру можно начать только на 5 или 10 человек. В комнате сейчас ${channelMembers.length}`);
     }
 
-    return await server.startGame(channelMembers);
+    return await server.startGame(channelMembers, msg);
   }
 }

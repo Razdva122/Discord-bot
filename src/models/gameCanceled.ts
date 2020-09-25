@@ -1,17 +1,23 @@
 import mongoose, { Document } from 'mongoose';
 
-import userInGameSchema, { IUserInGame } from './userInGame';
+import shortUserSchema, { IShortUser } from './shortUser';
 
-interface IGameCanceled extends Document {
+export interface IGameCanceled {
   id: number,
   state: 'canceled',
-  players: IUserInGame[],
+  players: IShortUser[],
+  started_by: IShortUser,
+  canceled_by: IShortUser,
 }
+
+type TGameCanceledModel = Document & IGameCanceled;
 
 const gameCanceledSchema = new mongoose.Schema({
   id: Number,
   state: String,
-  players: [userInGameSchema],
+  players: [shortUserSchema],
+  started_by: shortUserSchema,
+  canceled_by: shortUserSchema,
 });
 
-export const GameCanceledModel = mongoose.model<IGameCanceled>('GameCanceled', gameCanceledSchema);
+export const GameCanceledModel = mongoose.model<TGameCanceledModel>('GameCanceled', gameCanceledSchema);

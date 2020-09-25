@@ -4,11 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v1.0.2 2020-09-25
+
+### Added
+
+- Команда `!gameHistory` выводящая историю игры
+- В информацию по игре сохраняется кто ее создал и закончил/отменил
+
+### Fixed
+
+- Задвоение импостера в результате игры
+
 ## v1.0.1 2020-09-24
 
 ### Added
 
-- Добавлен `leaderboard` и команда `!initLeaderboard`
+- `leaderboard` и команда `!initLeaderboard`
 
 ## v1.0.0 2020-09-23
 

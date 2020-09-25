@@ -1,17 +1,21 @@
 import mongoose, { Document } from 'mongoose';
 
-import userInGameSchema, { IUserInGame } from './userInGame';
+import shortUserSchema, { IShortUser } from './shortUser';
 
-interface IGameStarted extends Document {
+export interface IGameStarted {
   id: number,
   state: 'started',
-  players: IUserInGame[],
+  players: IShortUser[],
+  started_by: IShortUser,
 }
+
+type TGameStartedModel = Document & IGameStarted;
 
 const gameStartedSchema = new mongoose.Schema({
   id: Number,
   state: String,
-  players: [userInGameSchema],
+  players: [shortUserSchema],
+  started_by: shortUserSchema,
 });
 
-export const GameStartedModel = mongoose.model<IGameStarted>('GameStarted', gameStartedSchema);
+export const GameStartedModel = mongoose.model<TGameStartedModel>('GameStarted', gameStartedSchema);
