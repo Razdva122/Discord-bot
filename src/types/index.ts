@@ -1,6 +1,6 @@
 import { User, Message } from 'discord.js';
 
-import { IUserInGame } from '../models/userInGame';
+import { IShortUser } from '../models/shortUser';
 
 export * from './util';
 
@@ -8,7 +8,7 @@ export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
 
 export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
-  'updateRole' | 'help' | 'initLeaderboard';
+  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory';
 export type TAPIMethods = TMethodsWithoutServer | TMethodsWithServer;
 
 export type Parameters<T> = T extends (... args: infer T) => any ? T : never; 
@@ -56,6 +56,8 @@ export type TGameResult = 'win' | 'lose';
 export interface IGameFinishState {
   id: number,
   impostorsRes: TGameResult,
-  impostors: IUserInGame[],
-  crewmates: IUserInGame[],
+  impostors: IShortUser[],
+  crewmates: IShortUser[],
+  started_by: IShortUser,
+  finished_by: IShortUser,
 }

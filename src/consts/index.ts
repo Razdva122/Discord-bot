@@ -31,6 +31,7 @@ export const accessLevelToMethods: { readonly [key in TAPIMethods]: number } = {
   'startGame': accessLevel.verified,
   'cancelGame': accessLevel.verified,
   'endGame': accessLevel.verified,
+  'gameHistory': accessLevel.all,
   'help': accessLevel.all,
 }
 
@@ -44,6 +45,7 @@ export const helpText: { readonly [key in TAPIMethods]: string } = {
   'startGame': `{${helpLevel[accessLevelToMethods.startGame]}} Начать игру`,
   'cancelGame': `{${helpLevel[accessLevelToMethods.cancelGame]}} Отменить игру`,
   'endGame': `{${helpLevel[accessLevelToMethods.endGame]}} Закончить игру`,
+  'gameHistory': `{${helpLevel[accessLevelToMethods.gameHistory]}} Получить информацию по игре`,
   'help': `{${helpLevel[accessLevelToMethods.help]}} Помощь`,
 }
 
@@ -55,6 +57,7 @@ export const commandHelp: { readonly [key in TAPIMethods]: string } = {
   'startGame': `!startGame [Название голосовой комнаты]`,
   'cancelGame': `!cancelGame [gameID]`,
   'endGame': `!endGame [gameID] [win (победа Импосторов) или lose (поражение)] [@impostor1] [@impostor2]`,
+  'gameHistory': '!gameHistory [gameID]',
   'help': `!help`,
 };
 

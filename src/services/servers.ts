@@ -2,12 +2,15 @@ import { User, Guild, Message } from 'discord.js';
 
 import { TAnswer, IServersFromMongo, TGameResult, IGameFinishState } from '../types';
 
-import { ServerModel, GameStartedModel, GameCanceledModel, UserModel, GameFinishedModel } from '../models';
+import {
+  ServerModel, GameStartedModel, GameCanceledModel, 
+  UserModel, GameFinishedModel, IGameCanceled,
+  IGameFinished, IGameStarted,
+} from '../models';
 
 import { defaultRating, ratingChange, usersInLeaderboard } from '../consts';
 
-import { IUserInGame } from '../models/userInGame';
-import { IGameFinished } from '../models/gameFinished';
+import { IShortUser } from '../models/shortUser';
 import { Res, Err } from '../utils/response';
 
 export class ServersClaster {
@@ -122,13 +125,17 @@ export class Server {
     this.users[roleToChange].roleID === newRoleID;
   }
 
-  public async startGame(usersInGame: IUserInGame[]): Promise<TAnswer> {
+  public async startGame(usersInGame: IShortUser[], msg: Message): Promise<TAnswer> {
     this.lastGameID += 1;
     await ServerModel.findOneAndUpdate({ id: this.serverID }, { lastGameID: this.lastGameID });
     const createGame = new GameStartedModel({
       id: this.lastGameID,
       state: 'progress',
       players: usersInGame,
+      started_by: {
+        name: msg.author.username,
+        id: msg.author.id,
+      },
     });
     const res = await createGame.save();
 
@@ -189,7 +196,7 @@ export class Server {
     }
 
     const crewmates = deletePrevGame.players.filter((player) => {
-      return player.id !== impostors[0].id && player.id !== impostors[0]?.id;
+      return player.id !== impostors[0].id && player.id !== impostors[1]?.id;
     })
 
     const finishGame = await this.updateRatingAndFinishGame({
@@ -197,6 +204,11 @@ export class Server {
       impostorsRes: gameStatus,
       impostors,
       crewmates,
+      started_by: deletePrevGame.started_by,
+      finished_by: {
+        name: msg.author.username,
+        id: msg.author.id,
+      },
     });
 
     if (finishGame.error) {
@@ -240,6 +252,8 @@ export class Server {
         crewmates: [],
         impostors: [],
       },
+      started_by: state.started_by,
+      finished_by: state.finished_by,
     };
 
     await Promise.all(players.map(async (player) => {
@@ -275,7 +289,7 @@ export class Server {
     return Res(gameResult);
   }
 
-  public async cancelGame(gameID: number): Promise<TAnswer> {
+  public async cancelGame(gameID: number, msg: Message): Promise<TAnswer> {
     const prevGameState = await GameStartedModel.findOneAndDelete({ id: gameID });
     if (!prevGameState) {
       return Err(`Не найдена игра с ID: ${gameID}`);
@@ -285,6 +299,11 @@ export class Server {
       id: prevGameState.id,
       state: 'canceled',
       players: prevGameState.players,
+      started_by: prevGameState.started_by,
+      canceled_by: {
+        name: msg.author.username,
+        id: msg.author.id,
+      }
     });
 
     await canceledGame.save();
@@ -323,6 +342,50 @@ export class Server {
         ]
       }
     };
+  }
+
+  public async gameHistory(gameID: number): Promise<TAnswer> {
+    const finishedGame = await GameFinishedModel.findOne({ id: gameID });
+    if (finishedGame) {
+      return this.gameHistoryMessage(finishedGame);
+    }
+
+    const canceledGame = await GameCanceledModel.findOne({ id: gameID });
+    if (canceledGame) {
+      return this.gameHistoryMessage(canceledGame);
+    }
+
+    const startedGame = await GameStartedModel.findOne({ id: gameID });
+    if (startedGame) {
+      return this.gameHistoryMessage(startedGame);
+    }
+
+    return Err(`Игра с ID: ${gameID} не была найдена`);
+  }
+
+  private gameHistoryMessage(game: IGameCanceled | IGameStarted | IGameFinished): TAnswer {
+    let message: string = `\nGame ID: ${game.id}\n`;
+    const statusMap = {
+      canceled: 'Отменена',
+      started: 'В прогрессе',
+      finished: 'Завершена',
+    };
+    message += `Статус: ${statusMap[game.state]}\n`;
+    if (game.state === 'canceled' || game.state === 'started') {
+      message += `Участники: *${game.players.map((p) => p.name).join(', ')}*\n`;
+    } else {
+      message += `Crewmates: *${game.crewmates.map((p) => p.name).join(', ')}*\n`;
+      message += `Impostors: *${game.impostors.map((p) => p.name).join(', ')}*\n`;
+    }
+    message += `Начал игру: ${game.started_by?.name}\n`;
+    if (game.state === 'finished') {
+      message += `Закончил игру: ${game.finished_by?.name}\n`;
+      message += `Результат: Победа ${game.win === 'crewmates' ? 'Crewmates' : 'Impostors'}\n`;
+    }
+    if (game.state === 'canceled') {
+      message += `Отменил игру: ${game.canceled_by?.name}\n`;
+    }
+    return Res(message);
   }
 
   public isUserVerified(user: User, guild: Guild): boolean {

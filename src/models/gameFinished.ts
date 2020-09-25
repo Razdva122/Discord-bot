@@ -1,25 +1,27 @@
 import mongoose, { Document } from 'mongoose';
 
-import userInGameSchema, { IUserInGame } from './userInGame';
+import shortUserSchema, { IShortUser } from './shortUser';
 
 export interface IGameFinished {
   id: number,
   state: 'finished',
   win: 'impostors' | 'crewmates',
-  impostors: IUserInGame[],
-  crewmates: IUserInGame[],
+  impostors: IShortUser[],
+  crewmates: IShortUser[],
   result: {
     impostors: {
-      name: IUserInGame['name'],
+      name: IShortUser['name'],
       before: number,
       diff: number,
     }[],
     crewmates: {
-      name: IUserInGame['name'],
+      name: IShortUser['name'],
       before: number,
       diff: number,
     }[],
   },
+  started_by: IShortUser,
+  finished_by: IShortUser,
 }
 
 type TGameFinishedModel = Document & IGameFinished;
@@ -27,8 +29,8 @@ type TGameFinishedModel = Document & IGameFinished;
 const gameFinishedSchema = new mongoose.Schema({
   id: Number,
   state: String,
-  impostors: [userInGameSchema],
-  crewmates: [userInGameSchema],
+  impostors: [shortUserSchema],
+  crewmates: [shortUserSchema],
   result: {
     impostors: [{
       name: String,
@@ -41,6 +43,8 @@ const gameFinishedSchema = new mongoose.Schema({
       diff: Number,
     }],
   },
+  started_by: shortUserSchema,
+  finished_by: shortUserSchema,
 });
 
 export const GameFinishedModel = mongoose.model<TGameFinishedModel>('GameFinished', gameFinishedSchema);
