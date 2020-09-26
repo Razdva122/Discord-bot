@@ -5,7 +5,7 @@ import { TAnswer, IServersFromMongo, TGameResult, IGameFinishState } from '../ty
 import {
   ServerModel, GameStartedModel, GameCanceledModel, 
   UserModel, GameFinishedModel, IGameCanceled,
-  IGameFinished, IGameStarted, GameDeletedModel,
+  IGameFinished, IGameStarted, GameDeletedModel, IGameDeleted,
 } from '../models';
 
 import { defaultRating, ratingChange, usersInLeaderboard } from '../consts';
@@ -349,15 +349,21 @@ export class Server {
       return this.gameHistoryMessage(startedGame);
     }
 
+    const deletedGame = await GameDeletedModel.findOne({ id: gameID });
+    if (deletedGame) {
+      return this.gameHistoryMessage(deletedGame);
+    }
+
     return Err(`Игра с ID: ${gameID} не была найдена`);
   }
 
-  private gameHistoryMessage(game: IGameCanceled | IGameStarted | IGameFinished): TAnswer {
+  private gameHistoryMessage(game: IGameCanceled | IGameStarted | IGameFinished | IGameDeleted): TAnswer {
     let message: string = `\nGame ID: ${game.id}\n`;
     const statusMap = {
       canceled: 'Отменена',
       started: 'В прогрессе',
       finished: 'Завершена',
+      deleted: 'Удалена',
     };
     message += `Статус: ${statusMap[game.state]}\n`;
     if (game.state === 'canceled' || game.state === 'started') {
@@ -367,9 +373,12 @@ export class Server {
       message += `Impostors: *${game.impostors.map((p) => p.name).join(', ')}*\n`;
     }
     message += `Начал игру: ${game.started_by?.name}\n`;
-    if (game.state === 'finished') {
+    if (game.state === 'finished' || game.state === 'deleted') {
       message += `Закончил игру: ${game.finished_by?.name}\n`;
       message += `Результат: Победа ${game.win === 'crewmates' ? 'Crewmates' : 'Impostors'}\n`;
+    }
+    if (game.state === 'deleted') {
+      message += `Удалил игру: ${game.deleted_by.name}\n`;
     }
     if (game.state === 'canceled') {
       message += `Отменил игру: ${game.canceled_by?.name}\n`;
