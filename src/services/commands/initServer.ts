@@ -1,7 +1,8 @@
 import { Message } from 'discord.js';
 
 import { ServerlessCommand } from './command';
-import { ServersClaster, Server } from '../servers';
+import { Server } from '../server';
+import { ServersClaster } from '../serverClaster';
 import { Err, Res } from "../../utils/response";
 
 import { TAnswer } from "../../types";

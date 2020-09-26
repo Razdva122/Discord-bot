@@ -2,9 +2,9 @@ import mongoose, { Document } from 'mongoose';
 
 import shortUserSchema, { IShortUser } from './shortUser';
 
-export interface IGameFinished {
+export interface IGameDeleted {
   id: number,
-  state: 'finished',
+  state: 'deleted',
   win: 'impostors' | 'crewmates',
   impostors: IShortUser[],
   crewmates: IShortUser[],
@@ -13,22 +13,21 @@ export interface IGameFinished {
       name: IShortUser['name'],
       before: number,
       diff: number,
-      id: IShortUser['id'],
     }[],
     crewmates: {
       name: IShortUser['name'],
       before: number,
       diff: number,
-      id: IShortUser['id'],
     }[],
   },
   started_by: IShortUser,
   finished_by: IShortUser,
+  deleted_by: IShortUser,
 }
 
-type TGameFinishedModel = Document & IGameFinished;
+type TGameDeletedModel = Document & IGameDeleted;
 
-const gameFinishedSchema = new mongoose.Schema({
+const gameDeletedSchema = new mongoose.Schema({
   id: Number,
   state: String,
   impostors: [shortUserSchema],
@@ -38,17 +37,16 @@ const gameFinishedSchema = new mongoose.Schema({
       name: String,
       before: Number,
       diff: Number,
-      id: String,
     }],
     crewmates: [{
       name: String,
       before: Number,
       diff: Number,
-      id: String,
     }],
   },
   started_by: shortUserSchema,
   finished_by: shortUserSchema,
+  deleted_by: shortUserSchema,
 });
 
-export const GameFinishedModel = mongoose.model<TGameFinishedModel>('GameFinished', gameFinishedSchema);
+export const GameDeletedModel = mongoose.model<TGameDeletedModel>('GameDeleted', gameDeletedSchema);

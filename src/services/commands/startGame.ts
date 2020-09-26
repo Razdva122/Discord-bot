@@ -1,5 +1,5 @@
 import { ServerCommand } from './command';
-import { Server } from '../servers';
+import { Server } from '../server';
 
 import { Message } from 'discord.js';
 
@@ -31,7 +31,7 @@ export default class StartGame extends ServerCommand {
     }));
 
     if (channelMembers.length !== 5 && channelMembers.length !== 10) {
-      return Err(`Игру можно начать только на 5 или 10 человек. В комнате сейчас ${channelMembers.length}`);
+      // return Err(`Игру можно начать только на 5 или 10 человек. В комнате сейчас ${channelMembers.length}`);
     }
 
     return await server.startGame(channelMembers, msg);

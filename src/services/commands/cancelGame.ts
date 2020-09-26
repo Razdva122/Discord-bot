@@ -1,5 +1,5 @@
 import { ServerCommand } from './command';
-import { Server } from '../servers';
+import { Server } from '../server';
 
 import { Message } from 'discord.js';
 

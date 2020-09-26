@@ -4,7 +4,8 @@ import { mainOwnerID, accessLevel } from "../../consts/index";
 
 import { TAnswer } from "../../types";
 import { Err, Res } from "../../utils/response";
-import { Server, ServersClaster } from '../servers';
+import { Server } from '../server';
+import { ServersClaster } from '../serverClaster';
 
 export abstract class Command {
   levelOfPermission: number;
