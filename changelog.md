@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v1.0.3 2020-09-26
+
+### Added
+
+- Команда `!deleteGame` удаляющая игру и возвращающая рейтинг
+
 ## v1.0.2 2020-09-25
 
 ### Added

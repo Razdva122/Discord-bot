@@ -1,7 +1,7 @@
 import { Message } from 'discord.js';
 
 import { ServerCommand } from './command';
-import { Server } from '../servers';
+import { Server } from '../server';
 import { Err, Res } from "../../utils/response";
 
 import { TAnswer, TGameResult } from "../../types";

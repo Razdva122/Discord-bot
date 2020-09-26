@@ -5,83 +5,13 @@ import { TAnswer, IServersFromMongo, TGameResult, IGameFinishState } from '../ty
 import {
   ServerModel, GameStartedModel, GameCanceledModel, 
   UserModel, GameFinishedModel, IGameCanceled,
-  IGameFinished, IGameStarted,
+  IGameFinished, IGameStarted, GameDeletedModel, IGameDeleted,
 } from '../models';
 
 import { defaultRating, ratingChange, usersInLeaderboard } from '../consts';
 
 import { IShortUser } from '../models/shortUser';
 import { Res, Err } from '../utils/response';
-
-export class ServersClaster {
-  private claster: { [key: string] : Server } = {};
-
-  constructor(serversFromMongo: IServersFromMongo[]) {
-    serversFromMongo.forEach((serverInfo) => {
-      const { adminsRoleID, serverID, verifiedRoleID, name, lastGameID } = serverInfo;
-      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID, serverName: name, serverID, lastGameID });
-    });
-  }
-
-  public async setNewServer(serverID: string, server: Server): Promise<TAnswer<Server>> {
-    if (this.claster[serverID]) {
-      return {
-        error: {
-          msg: 'Bot already exist on server',
-        }
-      }
-    }
-
-    const createServer = new ServerModel({
-      name: server.name,
-      id: serverID,
-      adminsID: server.users.admins.roleID,
-      verifiedID: server.users.verified.roleID,
-      lastGameID: 0,
-    });
-    const res = await createServer.save();
-    this.claster[serverID] = server;
-
-    return {
-      result: {
-        data: this.claster[serverID],
-      }
-    }
-  }
-
-  public getServer(serverID: string): TAnswer<Server> {
-    if (this.claster[serverID]) {
-      return {
-        result: {
-          data: this.claster[serverID],
-        }
-      }
-    }
-
-    return {
-      error: {
-        msg: `Server with ID:${serverID} does not exist`,
-      }
-    }
-  }
-
-  public deleteServer(serverID: string): TAnswer<string> {
-    if (this.claster[serverID]) {
-      delete this.claster[serverID];
-      return {
-        result: {
-          data: 'Success',
-        }
-      }
-    }
-
-    return {
-      error: {
-        msg: `Server with ID:${serverID} does not exist`,
-      }
-    }
-  }
-}
 
 export class Server {
   readonly serverID: string
@@ -283,7 +213,7 @@ export class Server {
       await playerFromDB.save();
 
       gameResult.result[playerIsImpostor ? 'impostors' : 'crewmates']
-        .push({ name: player.name, before: playerFromDB.rating - diff, diff });
+        .push({ name: player.name, before: playerFromDB.rating - diff, diff, id: player.id });
     }));
 
     return Res(gameResult);
@@ -309,6 +239,65 @@ export class Server {
     await canceledGame.save();
 
     return Res(`Игра ID: ${gameID} отменена`);
+  }
+
+  public async deleteGame(gameID: number, msg: Message): Promise<TAnswer> {
+    const prevGameState = await GameFinishedModel.findOneAndDelete({ id: gameID });
+    if (!prevGameState) {
+      return Err(`Не найдена игра с ID: ${gameID}`);
+    }
+
+    const revertRating = await this.revertRating(prevGameState);
+
+    if (revertRating.error) {
+      return revertRating;
+    }
+
+    const deletedGame = new GameDeletedModel({
+      id: prevGameState.id,
+      impostors: prevGameState.impostors,
+      crewmates: prevGameState.crewmates,
+      result: prevGameState.result,
+      state: 'deleted',
+      started_by: prevGameState.started_by,
+      finished_by: prevGameState.finished_by,
+      deleted_by: {
+        name: msg.author.username,
+        id: msg.author.id,
+      }
+    });
+
+    await deletedGame.save();
+
+    return Res(`Игра ID: ${gameID} удалена, рейтинг был возвращен`);
+  }
+
+  private async revertRating(game: IGameFinished): Promise<TAnswer> {
+    const players = [...game.crewmates, ...game.impostors];
+    await Promise.all(players.map(async (player) => {
+      const user = await UserModel.findOne({ id: player.id });
+      if (!user) {
+        return;
+      }
+
+      const gameRes = [...game.result.impostors, ...game.result.crewmates];
+      const diff = gameRes.find((user) => user.id === player.id)!.diff;
+      user.rating -= diff;
+      user.history.push({
+        reason: 'revert',
+        gameID: game.id,
+        rating: {
+          before: user.rating + diff,
+          after: user.rating,
+          diff,
+        }
+      });
+      await user.save();
+    }));
+
+    await this.updateLeaderboard();
+
+    return Res('Рейтинг возвращен');
   }
 
   public async initLeaderboard(msg: Message): Promise<void> {
@@ -360,15 +349,21 @@ export class Server {
       return this.gameHistoryMessage(startedGame);
     }
 
+    const deletedGame = await GameDeletedModel.findOne({ id: gameID });
+    if (deletedGame) {
+      return this.gameHistoryMessage(deletedGame);
+    }
+
     return Err(`Игра с ID: ${gameID} не была найдена`);
   }
 
-  private gameHistoryMessage(game: IGameCanceled | IGameStarted | IGameFinished): TAnswer {
+  private gameHistoryMessage(game: IGameCanceled | IGameStarted | IGameFinished | IGameDeleted): TAnswer {
     let message: string = `\nGame ID: ${game.id}\n`;
     const statusMap = {
       canceled: 'Отменена',
       started: 'В прогрессе',
       finished: 'Завершена',
+      deleted: 'Удалена',
     };
     message += `Статус: ${statusMap[game.state]}\n`;
     if (game.state === 'canceled' || game.state === 'started') {
@@ -378,9 +373,12 @@ export class Server {
       message += `Impostors: *${game.impostors.map((p) => p.name).join(', ')}*\n`;
     }
     message += `Начал игру: ${game.started_by?.name}\n`;
-    if (game.state === 'finished') {
+    if (game.state === 'finished' || game.state === 'deleted') {
       message += `Закончил игру: ${game.finished_by?.name}\n`;
       message += `Результат: Победа ${game.win === 'crewmates' ? 'Crewmates' : 'Impostors'}\n`;
+    }
+    if (game.state === 'deleted') {
+      message += `Удалил игру: ${game.deleted_by.name}\n`;
     }
     if (game.state === 'canceled') {
       message += `Отменил игру: ${game.canceled_by?.name}\n`;

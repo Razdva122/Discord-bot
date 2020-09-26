@@ -1,9 +1,9 @@
 
 import { Message } from 'discord.js';
 
-import { TAPIMethods, TAnswer } from '../types';
+import { TAnswer } from '../types';
 
-import { ServersClaster, Server } from './servers';
+import { ServersClaster } from './serverClaster';
 
 import { ServerCommand, ServerlessCommand } from './commands/command';
 

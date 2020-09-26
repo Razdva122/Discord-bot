@@ -6,7 +6,7 @@ import { settings } from './consts/private';
 
 import { ServerModel } from './models';
 
-import { ServersClaster } from './services/servers';
+import { ServersClaster } from './services/serverClaster';
 
 import CommandController from './services/commandController';
 
