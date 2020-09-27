@@ -37,7 +37,26 @@ export default class InitServer extends ServerlessCommand {
 
     const serverName = guild.name;
 
-    const createServer = await ServersClaster.setNewServer(guild.id, new Server({ adminsRoleID, verifiedRoleID, serverName, serverID: guild.id }));
+    const createServer = await ServersClaster.setNewServer(guild.id, 
+      new Server({ 
+        adminsRoleID, 
+        verifiedRoleID, 
+        serverName, 
+        serverID: guild.id, 
+        lastGameID: 0,
+        stats: {
+          mini: {
+            amount: 0,
+            imposters_win: 0,
+            crewmates_win: 0,
+          },
+          full: {
+            amount: 0,
+            imposters_win: 0,
+            crewmates_win: 0,
+          },
+        }, 
+      }));
     if (createServer.error) {
       return createServer;
     }

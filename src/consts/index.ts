@@ -4,9 +4,16 @@ export const defaultRating = 2000;
 
 export const usersInLeaderboard = 50;
 
+export const maxNicknameForLeadeboardLength = 12;
+
 export const ratingChange = {
   crewmate: 10,
   impostor: 20,
+};
+
+export const gameSize = {
+  mini: 5,
+  full: 10,
 };
 
 export const accessLevel: { readonly [key in TAccessLevel]: number } = {
@@ -27,6 +34,7 @@ export const accessLevelToMethods: { readonly [key in TAPIMethods]: number } = {
   'initServer': accessLevel.owner,
   'updateRole': accessLevel.owner,
   'deleteGame': accessLevel.admins,
+  'initStats': accessLevel.admins,
   'initLeaderboard': accessLevel.admins,
   'startGame': accessLevel.verified,
   'cancelGame': accessLevel.verified,
@@ -42,6 +50,7 @@ export const helpText: { readonly [key in TAPIMethods]: string } = {
   'updateRole': `{${helpLevel[accessLevelToMethods.updateRole]}} Обновить роль`,
   'deleteGame': `{${helpLevel[accessLevelToMethods.deleteGame]}} Удалить игру`,
   'initLeaderboard': `{${helpLevel[accessLevelToMethods.initLeaderboard]}} Создать лидерборд`,
+  'initStats': `{${helpLevel[accessLevelToMethods.initStats]}} Создать статистику`,
   'startGame': `{${helpLevel[accessLevelToMethods.startGame]}} Начать игру`,
   'cancelGame': `{${helpLevel[accessLevelToMethods.cancelGame]}} Отменить игру`,
   'endGame': `{${helpLevel[accessLevelToMethods.endGame]}} Закончить игру`,
@@ -54,6 +63,7 @@ export const commandHelp: { readonly [key in TAPIMethods]: string } = {
   'updateRole': `!updateRole [admins или verified] [Новая роль]`,
   'deleteGame': `!deleteGame [gameID]`,
   'initLeaderboard': '!initLeaderboard',
+  'initStats': '!initStats',
   'startGame': `!startGame [Название голосовой комнаты]`,
   'cancelGame': `!cancelGame [gameID]`,
   'endGame': `!endGame [gameID] [win (победа Импосторов) или lose (поражение)] [@impostor1] [@impostor2]`,

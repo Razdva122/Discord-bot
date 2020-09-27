@@ -9,8 +9,8 @@ export class ServersClaster {
 
   constructor(serversFromMongo: IServersFromMongo[]) {
     serversFromMongo.forEach((serverInfo) => {
-      const { adminsRoleID, serverID, verifiedRoleID, name, lastGameID } = serverInfo;
-      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID, serverName: name, serverID, lastGameID });
+      const { adminsRoleID, serverID, verifiedRoleID, name, lastGameID, stats } = serverInfo;
+      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID, serverName: name, serverID, lastGameID, stats });
     });
   }
 
@@ -28,7 +28,8 @@ export class ServersClaster {
       id: serverID,
       adminsID: server.users.admins.roleID,
       verifiedID: server.users.verified.roleID,
-      lastGameID: 0,
+      stats: server.stats,
+      lastGameID: server.lastGameID,
     });
     const res = await createServer.save();
     this.claster[serverID] = server;

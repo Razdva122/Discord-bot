@@ -6,7 +6,30 @@ const serverSchema = new mongoose.Schema({
   lastGameID: Number,
   adminsID: String,
   verifiedID: String,
+  stats: {
+    mini: {
+      amount: Number,
+      imposters_win: Number,
+      crewmates_win: Number,
+    },
+    full: {
+      amount: Number,
+      imposters_win: Number,
+      crewmates_win: Number,
+    },
+  }
 });
+
+export interface IModeStats {
+  amount: number,
+  imposters_win: number,
+  crewmates_win: number,
+};
+
+export interface IServerStats {
+  mini: IModeStats,
+  full: IModeStats,
+}
 
 interface IServerSchema extends Document {
   name: string,
@@ -14,6 +37,7 @@ interface IServerSchema extends Document {
   lastGameID: number,
   adminsID: string,
   verifiedID: string,
+  stats: IServerStats,
 }
 
 export const ServerModel = mongoose.model<IServerSchema>('Server', serverSchema);
