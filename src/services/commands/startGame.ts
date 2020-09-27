@@ -5,6 +5,8 @@ import { Message } from 'discord.js';
 
 import { Res, Err } from "../../utils/response";
 
+import { gameSize } from '../../consts';
+
 import { TAnswer } from "../../types";
 
 // !startGame roomName
@@ -27,11 +29,11 @@ export default class StartGame extends ServerCommand {
     }
     const channelMembers = room.members.array().map((member) => ({
       id: member.id,
-      name: member.user.username
+      name: member.guild.member(member)?.nickname || member.user.username,
     }));
 
-    if (channelMembers.length !== 5 && channelMembers.length !== 10) {
-      return Err(`Игру можно начать только на 5 или 10 человек. В комнате сейчас ${channelMembers.length}`);
+    if (channelMembers.length !== gameSize.mini && channelMembers.length !== gameSize.full) {
+      return Err(`Игру можно начать только на ${gameSize.mini} или ${gameSize.full} человек. В комнате сейчас ${channelMembers.length}`);
     }
 
     return await server.startGame(channelMembers, msg);

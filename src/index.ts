@@ -28,6 +28,7 @@ async function start() {
         adminsRoleID: server.adminsID,
         verifiedRoleID: server.verifiedID,
         lastGameID: server.lastGameID,
+        stats: server.stats,
       }
     }));
 

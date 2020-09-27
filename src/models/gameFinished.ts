@@ -2,8 +2,9 @@ import mongoose, { Document } from 'mongoose';
 
 import shortUserSchema, { IShortUser } from './shortUser';
 
-export interface IGameFinished {
-  id: number,
+import { IGame } from './game';
+
+export interface IGameFinished extends IGame {
   state: 'finished',
   win: 'impostors' | 'crewmates',
   impostors: IShortUser[],
@@ -22,7 +23,6 @@ export interface IGameFinished {
       id: IShortUser['id'],
     }[],
   },
-  started_by: IShortUser,
   finished_by: IShortUser,
 }
 
@@ -31,6 +31,8 @@ type TGameFinishedModel = Document & IGameFinished;
 const gameFinishedSchema = new mongoose.Schema({
   id: Number,
   state: String,
+  win: String,
+  type: String,
   impostors: [shortUserSchema],
   crewmates: [shortUserSchema],
   result: {

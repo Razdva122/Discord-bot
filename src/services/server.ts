@@ -1,21 +1,28 @@
 import { User, Guild, Message } from 'discord.js';
 
-import { TAnswer, IServersFromMongo, TGameResult, IGameFinishState } from '../types';
+import { TAnswer, TGameResult, IGameFinishState, TGameType } from '../types';
 
 import {
   ServerModel, GameStartedModel, GameCanceledModel, 
   UserModel, GameFinishedModel, IGameCanceled,
   IGameFinished, IGameStarted, GameDeletedModel, IGameDeleted,
+  IServerStats,
 } from '../models';
 
-import { defaultRating, ratingChange, usersInLeaderboard } from '../consts';
+import { 
+  defaultRating, ratingChange, gameSize,
+  usersInLeaderboard, maxNicknameForLeadeboardLength,
+} from '../consts';
 
 import { IShortUser } from '../models/shortUser';
 import { Res, Err } from '../utils/response';
 
 export class Server {
   readonly serverID: string
-  private leaderboardMsg: null | Message = null;
+  private systemMessages: {
+    leaderboard: null | Message,
+    stats: null | Message,
+  } = { leaderboard: null, stats: null };
   lastGameID: number
   name: string
   users: { 
@@ -26,9 +33,10 @@ export class Server {
       roleID: string,
     }
   }
+  stats: IServerStats
   
-  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID, lastGameID }: 
-    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string, lastGameID?: number }) {
+  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID, lastGameID, stats }: 
+    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string, lastGameID: number, stats: IServerStats }) {
     this.users = {
       admins: {
         roleID: adminsRoleID,
@@ -41,7 +49,9 @@ export class Server {
     this.name = serverName;
 
     this.serverID = serverID;
-    this.lastGameID = lastGameID || 0;
+    this.lastGameID = lastGameID;
+
+    this.stats = stats;
   }
 
   public async updateRole(roleToChange: 'admins' | 'verified', newRoleID: string) {
@@ -60,10 +70,11 @@ export class Server {
     await ServerModel.findOneAndUpdate({ id: this.serverID }, { lastGameID: this.lastGameID });
     const createGame = new GameStartedModel({
       id: this.lastGameID,
-      state: 'progress',
+      state: 'started',
+      type: usersInGame.length === gameSize.mini ? 'mini' : 'full',
       players: usersInGame,
       started_by: {
-        name: msg.author.username,
+        name: this.getNicknameOfAuthor(msg),
         id: msg.author.id,
       },
     });
@@ -99,15 +110,15 @@ export class Server {
       }
     });
 
-    if (prevGameState.players.length === 5) {
+    if (prevGameState.players.length === gameSize.mini) {
       if (impostors.length !== 1) {
-        return Err(`В игре на 5 человек, должен быть один импостер`);
+        return Err(`В игре на ${gameSize.mini} человек, должен быть один импостер`);
       }
     }
 
-    if (prevGameState.players.length === 10) {
+    if (prevGameState.players.length === gameSize.full) {
       if (impostors.length !== 2) {
-        return Err(`В игре на 10 человек, должно быть два импостера`);
+        return Err(`В игре на ${gameSize.full} человек, должно быть два импостера`);
       }
     }
 
@@ -131,12 +142,13 @@ export class Server {
 
     const finishGame = await this.updateRatingAndFinishGame({
       id: gameID,
+      type: prevGameState.type,
       impostorsRes: gameStatus,
       impostors,
       crewmates,
       started_by: deletePrevGame.started_by,
       finished_by: {
-        name: msg.author.username,
+        name: this.getNicknameOfAuthor(msg),
         id: msg.author.id,
       },
     });
@@ -160,7 +172,8 @@ export class Server {
     }).join(' | ');
     const impostorsLine = `Impostors: ${impostorsInString}`;
 
-    this.updateLeaderboard();
+    await this.updateStats(finishGame.result.data.type, finishGame.result.data.win === 'crewmates' ? 'crewmates_win' : 'imposters_win', 1);
+    this.updateSystemMessages();
 
     return Res(`${firstLine}\n${secondLine}\n${crewmatesLine}\n${impostorsLine}`);
   }
@@ -176,6 +189,7 @@ export class Server {
       id: state.id,
       state: "finished",
       win: state.impostorsRes === 'lose' ? 'crewmates' : 'impostors',
+      type: state.type,
       impostors: state.impostors,
       crewmates: state.crewmates,
       result: {
@@ -228,10 +242,11 @@ export class Server {
     const canceledGame = new GameCanceledModel({
       id: prevGameState.id,
       state: 'canceled',
+      type: prevGameState.type,
       players: prevGameState.players,
       started_by: prevGameState.started_by,
       canceled_by: {
-        name: msg.author.username,
+        name: this.getNicknameOfAuthor(msg),
         id: msg.author.id,
       }
     });
@@ -257,12 +272,14 @@ export class Server {
       id: prevGameState.id,
       impostors: prevGameState.impostors,
       crewmates: prevGameState.crewmates,
+      win: prevGameState.win,
+      type: prevGameState.type,
       result: prevGameState.result,
       state: 'deleted',
       started_by: prevGameState.started_by,
       finished_by: prevGameState.finished_by,
       deleted_by: {
-        name: msg.author.username,
+        name: this.getNicknameOfAuthor(msg),
         id: msg.author.id,
       }
     });
@@ -295,42 +312,82 @@ export class Server {
       await user.save();
     }));
 
-    await this.updateLeaderboard();
+    await this.updateStats(game.type, game.win === 'crewmates' ? 'crewmates_win' : 'imposters_win', -1);
+    await this.updateSystemMessages();
 
     return Res('Рейтинг возвращен');
   }
 
   public async initLeaderboard(msg: Message): Promise<void> {
     const leaderboard = await this.generateLeaderboard();
-    this.leaderboardMsg = await msg.channel.send(leaderboard);
+    this.systemMessages.leaderboard = await msg.channel.send(leaderboard);
   }
 
-  private async updateLeaderboard(): Promise<void> {
-    if (!this.leaderboardMsg) {
+  public async initStats(msg: Message): Promise<void> {
+    const stats = await this.generateStats();
+    this.systemMessages.stats = await msg.channel.send(stats);
+  }
+
+  private async updateLeaderboardMsg(): Promise<void> {
+    if (!this.systemMessages.leaderboard) {
       return;
     }
     const leaderboard = await this.generateLeaderboard();
 
-    await this.leaderboardMsg.edit(leaderboard);
+    await this.systemMessages.leaderboard.edit(leaderboard);
   }
 
-  private async generateLeaderboard() {
+  private async updateStatsMsg(): Promise<void> {
+    if (!this.systemMessages.stats) {
+      return;
+    }
+    const stats = await this.generateStats();
+
+    await this.systemMessages.stats.edit(stats);
+  }
+
+  private async updateStats(type: TGameType, res: 'imposters_win' | 'crewmates_win', diff: 1 | -1): Promise<void> {
+    this.stats[type].amount += diff;
+    this.stats[type][res] += diff;
+    const res2 = await ServerModel.findOneAndUpdate({ id: this.serverID }, { stats: this.stats });
+  }
+
+  private async updateSystemMessages(): Promise<void> {
+    await this.updateLeaderboardMsg();
+    await this.updateStatsMsg();
+  }
+
+  private async generateLeaderboard(): Promise<string> {
     const bestUsers = await UserModel.find().sort({ rating: -1 }).limit(usersInLeaderboard);
 
-    const positions = bestUsers.map((user, index) => index + 1).join('\n');
-    const nicknames = bestUsers.map((user) => user.name).join('\n');
-    const rating = bestUsers.map((user) => user.rating).join('\n');
-
-    return { embed: {
-        color: 3447003,
-        title: `__**Лидерборд ТОП-${bestUsers.length}**__`,
-        fields: [
-          { name: "Позиция", value: positions, inline: true},
-          { name: "Никнейм", value: nicknames, inline: true},
-          { name: "Рейтинг", value: rating, inline: true},
-        ]
+    const message = bestUsers.map((user, index) => {
+      let username;
+      if (user.name.length <= maxNicknameForLeadeboardLength) {
+        username = user.name;
+        for (let i = 0; i < maxNicknameForLeadeboardLength - user.name.length; i += 1) {
+          username += ' ';
+        }
+      } else {
+        username = user.name.slice(0, maxNicknameForLeadeboardLength - 3) + '...';
       }
-    };
+      return `${index + 1}. ${username}${index < 9 ? ' ' : ''} ${user.rating}`;
+    }).join('\n');
+
+    return '```d\n' + `Лидерборд ТОП-${bestUsers.length}\n` + message + '```';
+  }
+
+  private generateStats(): string {
+    let message = `Статистика:\n`;
+    message += `Полные игры (${gameSize.full} человек):\n`
+    message += `Количество игр: ${this.stats.full.amount}\n`;
+    message += `Imposters: Побед - ${this.stats.full.imposters_win}, Winrate - ${Math.round(this.stats.full.imposters_win / this.stats.full.amount * 100)} %\n`;
+    message += `Crewmates: Побед - ${this.stats.full.crewmates_win}, Winrate - ${Math.round(this.stats.full.crewmates_win / this.stats.full.amount * 100)} %\n`;
+    message += '\n';
+    message += `Мини игры (${gameSize.mini} человек):\n`
+    message += `Количество игр: ${this.stats.mini.amount}\n`;
+    message += `Imposters: Побед - ${this.stats.mini.imposters_win}, Winrate - ${Math.round(this.stats.mini.imposters_win / this.stats.mini.amount * 100)} %\n`;
+    message += `Crewmates: Побед - ${this.stats.mini.crewmates_win}, Winrate - ${Math.round(this.stats.mini.crewmates_win / this.stats.mini.amount * 100)} %\n`;
+    return '```d\n' + message + '```';
   }
 
   public async gameHistory(gameID: number): Promise<TAnswer> {
@@ -361,11 +418,12 @@ export class Server {
     let message: string = `\nGame ID: ${game.id}\n`;
     const statusMap = {
       canceled: 'Отменена',
-      started: 'В прогрессе',
+      started: 'В процессе',
       finished: 'Завершена',
       deleted: 'Удалена',
     };
     message += `Статус: ${statusMap[game.state]}\n`;
+    message += `Тип: ${game.type === 'mini' ? 'мини' : 'полная'}\n`;
     if (game.state === 'canceled' || game.state === 'started') {
       message += `Участники: *${game.players.map((p) => p.name).join(', ')}*\n`;
     } else {
@@ -384,6 +442,10 @@ export class Server {
       message += `Отменил игру: ${game.canceled_by?.name}\n`;
     }
     return Res(message);
+  }
+
+  private getNicknameOfAuthor(msg: Message): string {
+    return msg.guild?.member(msg.author)?.nickname || msg.author.username;
   }
 
   public isUserVerified(user: User, guild: Guild): boolean {

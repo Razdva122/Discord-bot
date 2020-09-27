@@ -2,13 +2,17 @@ import { User, Message } from 'discord.js';
 
 import { IShortUser } from '../models/shortUser';
 
+import { IServerStats } from '../models';
+
 export * from './util';
 
 export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
 
+export type TGameType = 'mini' | 'full';
+
 export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
-  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory';
+  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats';
 export type TAPIMethods = TMethodsWithoutServer | TMethodsWithServer;
 
 export type Parameters<T> = T extends (... args: infer T) => any ? T : never; 
@@ -33,6 +37,7 @@ export interface IServersFromMongo {
   lastGameID: number,
   adminsRoleID: string,
   verifiedRoleID: string,
+  stats: IServerStats,
 }
 
 export type TAnswerResult<T> = {
@@ -55,6 +60,7 @@ export type TGameResult = 'win' | 'lose';
 
 export interface IGameFinishState {
   id: number,
+  type: TGameType,
   impostorsRes: TGameResult,
   impostors: IShortUser[],
   crewmates: IShortUser[],

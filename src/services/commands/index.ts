@@ -6,6 +6,7 @@ import StartGame from './startGame';
 import CancelGame from './cancelGame';
 import EndGame from './endGame';
 import InitLeaderboard from './initLeaderboard';
+import InitStats from './initStats';
 import GameHistory from './gameHistory';
 
 import { accessLevelToMethods, commandHelp } from '../../consts';
@@ -19,5 +20,6 @@ export default {
   '!cancelGame': new CancelGame(accessLevelToMethods.cancelGame, commandHelp.cancelGame),
   '!endGame': new EndGame(accessLevelToMethods.endGame, commandHelp.endGame),
   '!initLeaderboard': new InitLeaderboard(accessLevelToMethods.initLeaderboard, commandHelp.initLeaderboard),
+  '!initStats': new InitStats(accessLevelToMethods.initStats, commandHelp.initStats),
   '!gameHistory': new GameHistory(accessLevelToMethods.gameHistory, commandHelp.gameHistory),
 }

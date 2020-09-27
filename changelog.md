@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v1.0.4 2020-09-27
+
+### Added
+
+- Команда `!initStats` создающая отображение статистики
+
+### Changed
+
+- Переработано отображение лидерборда
+- Теперь приоритет отдается никам установленным на сервере
+
 ## v1.0.3 2020-09-26
 
 ### Added
