@@ -20,11 +20,13 @@ export default class commandController {
   async processMessage(msg: Message): Promise<TAnswer> {
     const [method, ...args] = msg.content.trim().split(' ');
 
-    if (!this.isValidMethod(method)) {
+    const methodNormalized = method.toLowerCase();
+
+    if (!this.isValidMethod(methodNormalized)) {
       return Err(`${method} такой команды не существует`);
     }
 
-    const command = commands[method];
+    const command = commands[methodNormalized];
 
     if (args[0] === 'help') {
       return Res(command.help);

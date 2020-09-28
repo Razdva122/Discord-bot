@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v1.0.5 2020-09-28
+
+### Changed
+
+- Команды теперь регистро-независимые
+
+### Fixed
+
+- Исправлено отображение лидерборда при символе `'` в нике игрока
+
 ## v1.0.4 2020-09-27
 
 ### Added

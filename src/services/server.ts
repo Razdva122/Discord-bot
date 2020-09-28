@@ -361,16 +361,15 @@ export class Server {
     const bestUsers = await UserModel.find().sort({ rating: -1 }).limit(usersInLeaderboard);
 
     const message = bestUsers.map((user, index) => {
-      let username;
-      if (user.name.length <= maxNicknameForLeadeboardLength) {
-        username = user.name;
-        for (let i = 0; i < maxNicknameForLeadeboardLength - user.name.length; i += 1) {
+      let username = user.name.split('').filter((char) => char !== `'`).join('');
+      if (username.length <= maxNicknameForLeadeboardLength) {
+        while(username.length < maxNicknameForLeadeboardLength) {
           username += ' ';
         }
       } else {
-        username = user.name.slice(0, maxNicknameForLeadeboardLength - 3) + '...';
+        username = username.slice(0, maxNicknameForLeadeboardLength - 3) + '...';
       }
-      return `${index + 1}. ${username}${index < 9 ? ' ' : ''} ${user.rating}`;
+      return `${index + 1}. ${index < 9 ? ' ' : ''}${username} ${user.rating}`;
     }).join('\n');
 
     return '```d\n' + `Лидерборд ТОП-${bestUsers.length}\n` + message + '```';
