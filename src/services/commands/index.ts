@@ -12,14 +12,14 @@ import GameHistory from './gameHistory';
 import { accessLevelToMethods, commandHelp } from '../../consts';
 
 export default {
-  '!initServer': new InitServer(accessLevelToMethods.initServer, commandHelp.initServer),
-  '!updateRole': new UpdateRole(accessLevelToMethods.updateRole, commandHelp.updateRole),
-  '!deleteGame': new DeleteGame(accessLevelToMethods.deleteGame, commandHelp.deleteGame),
+  '!initserver': new InitServer(accessLevelToMethods.initServer, commandHelp.initServer),
+  '!updaterole': new UpdateRole(accessLevelToMethods.updateRole, commandHelp.updateRole),
+  '!deletegame': new DeleteGame(accessLevelToMethods.deleteGame, commandHelp.deleteGame),
   '!help': new Help(accessLevelToMethods.help, commandHelp.help),
-  '!startGame': new StartGame(accessLevelToMethods.startGame, commandHelp.startGame),
-  '!cancelGame': new CancelGame(accessLevelToMethods.cancelGame, commandHelp.cancelGame),
-  '!endGame': new EndGame(accessLevelToMethods.endGame, commandHelp.endGame),
-  '!initLeaderboard': new InitLeaderboard(accessLevelToMethods.initLeaderboard, commandHelp.initLeaderboard),
-  '!initStats': new InitStats(accessLevelToMethods.initStats, commandHelp.initStats),
-  '!gameHistory': new GameHistory(accessLevelToMethods.gameHistory, commandHelp.gameHistory),
+  '!startgame': new StartGame(accessLevelToMethods.startGame, commandHelp.startGame),
+  '!cancelgame': new CancelGame(accessLevelToMethods.cancelGame, commandHelp.cancelGame),
+  '!endgame': new EndGame(accessLevelToMethods.endGame, commandHelp.endGame),
+  '!initleaderboard': new InitLeaderboard(accessLevelToMethods.initLeaderboard, commandHelp.initLeaderboard),
+  '!initstats': new InitStats(accessLevelToMethods.initStats, commandHelp.initStats),
+  '!gamehistory': new GameHistory(accessLevelToMethods.gameHistory, commandHelp.gameHistory),
 }
