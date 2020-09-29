@@ -201,10 +201,15 @@ export class Server {
     };
 
     await Promise.all(players.map(async (player) => {
-      const playerIsImpostor = state.impostors.some((impostor) => impostor.id === player.id);
-      const diff = playerIsImpostor 
-        ? state.impostorsRes === 'win' ? ratingChange.impostor : -ratingChange.impostor
-        : state.impostorsRes === 'lose' ? ratingChange.crewmate : -ratingChange.crewmate;
+      const playerIs = state.impostors.some((impostor) => impostor.id === player.id) ? 'impostor' : 'crewmate';
+      let diff = ratingChange[playerIs][state.type];
+      if (playerIs === 'impostor' && state.impostorsRes === 'lose') {
+        diff *= -1;
+      }
+
+      if (playerIs === 'crewmate' && state.impostorsRes === 'win') {
+        diff *= -1;
+      }
       const playerFromDB = await UserModel.findOne({ id: player.id });
 
       if (!playerFromDB) {
@@ -215,7 +220,7 @@ export class Server {
       playerFromDB.rating += diff;
       playerFromDB.gamesID.push(state.id);
       playerFromDB.history.push({
-        reason: playerIsImpostor ? state.impostorsRes : crewmatesRes[state.impostorsRes],
+        reason: playerIs === 'impostor' ? state.impostorsRes : crewmatesRes[state.impostorsRes],
         gameID: state.id,
         rating: {
           before: playerFromDB.rating - diff,
@@ -226,7 +231,7 @@ export class Server {
 
       await playerFromDB.save();
 
-      gameResult.result[playerIsImpostor ? 'impostors' : 'crewmates']
+      gameResult.result[playerIs === 'impostor' ? 'impostors' : 'crewmates']
         .push({ name: player.name, before: playerFromDB.rating - diff, diff, id: player.id });
     }));
 
@@ -287,6 +292,41 @@ export class Server {
     await deletedGame.save();
 
     return Res(`Игра ID: ${gameID} удалена, рейтинг был возвращен`);
+  }
+
+  public async changeRating(diff: number, msg: Message): Promise<TAnswer> {
+    const mentions = msg.mentions.members;
+
+    if (!mentions) {
+      return Err('В команде не указан юзер, которому нужно изменить рейтинг');
+    }
+
+    const users = mentions.array();
+    if (users.length !== 1) {
+      return Err('В команде нужно указать одного юзера');
+    }
+
+    const user = await UserModel.findOne({ id: users[0].id });
+    if (!user) {
+      return Err('Юзер не найден в базе данных');
+    }
+
+    user.rating += diff;
+    user.history.push({
+      reason: 'manualy',
+      changedBy: {
+        name: this.getNicknameOfAuthor(msg),
+        id: msg.author.id,
+      },
+      rating: {
+        before: user.rating - diff,
+        after: user.rating,
+        diff,
+      },
+    });
+    await user.save();
+
+    return Res(`Рейтинг юзера ${msg.guild?.member(users[0])?.nickname || users[0].user.username} изменен на ${diff}`);
   }
 
   private async revertRating(game: IGameFinished): Promise<TAnswer> {

@@ -8,6 +8,7 @@ import EndGame from './endGame';
 import InitLeaderboard from './initLeaderboard';
 import InitStats from './initStats';
 import GameHistory from './gameHistory';
+import ChangeRating from './changeRating';
 
 import { accessLevelToMethods, commandHelp } from '../../consts';
 
@@ -16,6 +17,7 @@ export default {
   '!updaterole': new UpdateRole(accessLevelToMethods.updateRole, commandHelp.updateRole),
   '!deletegame': new DeleteGame(accessLevelToMethods.deleteGame, commandHelp.deleteGame),
   '!help': new Help(accessLevelToMethods.help, commandHelp.help),
+  '!changerating': new ChangeRating(accessLevelToMethods.changeRating, commandHelp.changeRating),
   '!startgame': new StartGame(accessLevelToMethods.startGame, commandHelp.startGame),
   '!cancelgame': new CancelGame(accessLevelToMethods.cancelGame, commandHelp.cancelGame),
   '!endgame': new EndGame(accessLevelToMethods.endGame, commandHelp.endGame),
