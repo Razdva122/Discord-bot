@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v1.0.6 2020-09-29
+
+### Added
+
+- Команда `!changeRating` изменяющая рейтинг юзеру
+
+### Changed
+
+- Понижено количество поинтов получаемое и отнимаемое за мини-игру (на 5 человек)
+
 ## v1.0.5 2020-09-28
 
 ### Changed

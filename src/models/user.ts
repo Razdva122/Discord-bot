@@ -1,5 +1,6 @@
 
 import mongoose, { Document } from 'mongoose';
+import shortUserSchema, { IShortUser } from './shortUser';
 
 const userSchema = new mongoose.Schema({
   id: String,
@@ -8,6 +9,7 @@ const userSchema = new mongoose.Schema({
   history: [{
     reason: String,
     gameID: Number,
+    changedBy: shortUserSchema,
     rating: {
       before: Number,
       after: Number,
@@ -22,18 +24,27 @@ interface IUser extends Document {
   id: string,
   name: string,
   gamesID: number[],
-  history: IChangeRating[]
+  history: (IGameChangeRating | IManualyChangeRating)[]
   rating: number,
 }
 
 interface IChangeRating {
-  reason: 'win' | 'lose' | 'revert'
-  gameID: number,
+  reason: 'win' | 'lose' | 'revert' | 'manualy',
   rating: {
     before: number,
     after: number,
     diff: number,
-  }
+  },
+}
+
+interface IGameChangeRating extends IChangeRating {
+  reason: 'win' | 'lose' | 'revert',
+  gameID: number,
+}
+
+interface IManualyChangeRating extends IChangeRating {
+  reason: 'manualy',
+  changedBy: IShortUser,
 }
 
 export const UserModel = mongoose.model<IUser>('User', userSchema);
