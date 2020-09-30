@@ -4,7 +4,7 @@ export const defaultRating = 2000;
 
 export const usersInLeaderboard = 50;
 
-export const maxNicknameForLeadeboardLength = 12;
+export const maxNicknameForLeadeboardLength = 15;
 
 export const ratingChange = {
   crewmate: {
@@ -47,6 +47,7 @@ export const accessLevelToMethods: { readonly [key in TAPIMethods]: number } = {
   'cancelGame': accessLevel.verified,
   'endGame': accessLevel.verified,
   'gameHistory': accessLevel.all,
+  'stats': accessLevel.all,
   'help': accessLevel.all,
 }
 
@@ -63,21 +64,23 @@ export const helpText: { readonly [key in TAPIMethods]: string } = {
   'cancelGame': `{${helpLevel[accessLevelToMethods.cancelGame]}} Отменить игру`,
   'endGame': `{${helpLevel[accessLevelToMethods.endGame]}} Закончить игру`,
   'gameHistory': `{${helpLevel[accessLevelToMethods.gameHistory]}} Получить информацию по игре`,
+  'stats': `{${helpLevel[accessLevelToMethods.stats]}} Получить вашу статистику`,
   'help': `{${helpLevel[accessLevelToMethods.help]}} Помощь`,
 }
 
 export const commandHelp: { readonly [key in TAPIMethods]: string } = {
-  'initServer': `!initServer [Роль админов] [Роль верифицированных пользователей]`,
-  'updateRole': `!updateRole [admins или verified] [Новая роль]`,
-  'deleteGame': `!deleteGame [gameID]`,
-  'initLeaderboard': '!initLeaderboard',
-  'initStats': '!initStats',
-  'changeRating': '!changeRating [Изменение рейтинга] [@user]',
-  'startGame': `!startGame [Название голосовой комнаты]`,
-  'cancelGame': `!cancelGame [gameID]`,
-  'endGame': `!endGame [gameID] [win (победа Импосторов) или lose (поражение)] [@impostor1] [@impostor2]`,
-  'gameHistory': '!gameHistory [gameID]',
-  'help': `!help`,
+  'initServer': `\n!initServer [Роль админов] [Роль верифицированных пользователей]\n!initServer Admin Verified`,
+  'updateRole': `\n!updateRole [admins или verified] [Новая роль]\n!updateRole admins new_admins`,
+  'deleteGame': `\n!deleteGame [gameID]\n!deleteGame 138`,
+  'initLeaderboard': '\n!initLeaderboard',
+  'initStats': '\n!initStats',
+  'changeRating': '\n!changeRating [Изменение рейтинга] [@user]\n!changeRating -20 @someone',
+  'startGame': `\n!startGame [Название голосовой комнаты]\n!startGame Спутник`,
+  'cancelGame': `\n!cancelGame [gameID]\n!cancelGame 138`,
+  'endGame': `\n!endGame [gameID] [win (победа Импосторов) или lose (поражение)] [@impostor1] [@impostor2]\n!endGame win 138 @someone @someonelse`,
+  'stats': '\n!stats',
+  'gameHistory': '\n!gameHistory [gameID]\n!gameHistory 138',
+  'help': `\n!help`,
 };
 
 export const mainOwnerID = '278796523817402369';

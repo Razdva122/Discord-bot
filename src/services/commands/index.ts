@@ -9,6 +9,7 @@ import InitLeaderboard from './initLeaderboard';
 import InitStats from './initStats';
 import GameHistory from './gameHistory';
 import ChangeRating from './changeRating';
+import Stats from './stats';
 
 import { accessLevelToMethods, commandHelp } from '../../consts';
 
@@ -23,5 +24,6 @@ export default {
   '!endgame': new EndGame(accessLevelToMethods.endGame, commandHelp.endGame),
   '!initleaderboard': new InitLeaderboard(accessLevelToMethods.initLeaderboard, commandHelp.initLeaderboard),
   '!initstats': new InitStats(accessLevelToMethods.initStats, commandHelp.initStats),
+  '!stats': new Stats(accessLevelToMethods.stats, commandHelp.stats),
   '!gamehistory': new GameHistory(accessLevelToMethods.gameHistory, commandHelp.gameHistory),
 }
