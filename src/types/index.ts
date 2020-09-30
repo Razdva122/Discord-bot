@@ -12,7 +12,7 @@ export type TGameType = 'mini' | 'full';
 
 export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
-  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats' | 'changeRating';
+  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats' | 'changeRating' | 'stats';
 export type TAPIMethods = TMethodsWithoutServer | TMethodsWithServer;
 
 export type Parameters<T> = T extends (... args: infer T) => any ? T : never; 

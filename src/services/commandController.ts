@@ -18,7 +18,7 @@ export default class commandController {
   }
 
   async processMessage(msg: Message): Promise<TAnswer> {
-    const [method, ...args] = msg.content.trim().split(' ');
+    const [method, ...args] = msg.content.replace(/  +/g, ' ').trim().split(' ');
 
     const methodNormalized = method.toLowerCase();
 
@@ -38,7 +38,6 @@ export default class commandController {
     }
 
     if (this.isServerCommand(command)) {
-      command
       const serverRes = this.serverClaster.getServer(msg.guild!.id);
       if (serverRes.error) {
         return serverRes;

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v1.0.7 2020-09-30
+
+### Added
+
+- Команда `!stats` отправляющая рейтинг юзеру в лс
+
+### Fixed
+
+- Команда работает с несколькими пробелами
+
 ## v1.0.6 2020-09-29
 
 ### Added

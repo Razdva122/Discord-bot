@@ -16,6 +16,7 @@ import {
 
 import { IShortUser } from '../models/shortUser';
 import { Res, Err } from '../utils/response';
+import { stat } from 'fs';
 
 export class Server {
   readonly serverID: string
@@ -346,7 +347,7 @@ export class Server {
         rating: {
           before: user.rating + diff,
           after: user.rating,
-          diff,
+          diff: -diff,
         }
       });
       await user.save();
@@ -366,6 +367,47 @@ export class Server {
   public async initStats(msg: Message): Promise<void> {
     const stats = await this.generateStats();
     this.systemMessages.stats = await msg.channel.send(stats);
+  }
+
+  public async getStats(msg: Message): Promise<TAnswer> {
+    const user = await UserModel.findOne({ id: msg.author.id });
+    if (!user) {
+      return Err('Мы не смогли найти вашу статистику в базе');
+    }
+
+    let stats = `-------------**Статистика**-------------\n`;
+    stats += `Пользователь: ${msg.author.username}\n`
+    stats += `Текущий рейтинг: ${user.rating}\n\n`;
+    const games = user.history.filter(el => el.reason !== 'manualy' && el.reason !== 'revert');
+    const loses = games.filter(el => el.reason === 'lose');
+    const wins = games.filter(el => el.reason === 'win');
+    stats += `Общее количество игр: ${games.length}\n`;
+    stats += `Побед: ${wins.length}\n`;
+    stats += `Поражений: ${loses.length}\n`;
+    stats += `Процент побед: ${Math.floor(wins.length / games.length * 100)} %\n\n`;
+    stats += `Последние 10 изменений рейтинга\n`;
+    stats += '```d\n';
+    stats += 'Действие           GameID      Рейтинг\n';
+    stats += '-------------------------------------\n';
+    const lastActions = user.history.slice(user.history.length >= 10 ? user.history.length - 10 : 0);
+    lastActions.forEach((el) => {
+      const diff = el.rating.diff < 0 ? el.rating.diff : `+${el.rating.diff}`
+      if (el.reason === 'manualy') {
+        stats += `Изменен в ручную               ${el.rating.before} ${diff}\n`;
+        return;
+      }
+      const startOfMsg = {
+        'revert': 'Возврат за игру   ',
+        'win': 'Победа в игре     ',
+        'lose': 'Поражение в игре  ',
+      }
+      stats += `${startOfMsg[el.reason]} ${el.gameID}          ${el.rating.before} ${diff}\n`;
+      return;
+    });
+    stats += '```';
+
+    msg.author.send(stats);
+    return Res('Статистика отправлена в личные сообщения');
   }
 
   private async updateLeaderboardMsg(): Promise<void> {
