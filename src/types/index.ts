@@ -10,6 +10,8 @@ export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
 
 export type TGameType = 'mini' | 'full';
 
+export type TGameMaps = 'skeld';
+
 export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
   'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats' | 'changeRating' | 'stats';
@@ -61,6 +63,7 @@ export type TGameResult = 'win' | 'lose';
 export interface IGameFinishState {
   id: number,
   type: TGameType,
+  map: TGameMaps,
   impostorsRes: TGameResult,
   impostors: IShortUser[],
   crewmates: IShortUser[],

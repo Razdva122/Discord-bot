@@ -7,17 +7,19 @@ const serverSchema = new mongoose.Schema({
   adminsID: String,
   verifiedID: String,
   stats: {
-    mini: {
-      amount: Number,
-      imposters_win: Number,
-      crewmates_win: Number,
+    skeld: {
+      mini: {
+        amount: Number,
+        imposters_win: Number,
+        crewmates_win: Number,
+      },
+      full: {
+        amount: Number,
+        imposters_win: Number,
+        crewmates_win: Number,
+      },
     },
-    full: {
-      amount: Number,
-      imposters_win: Number,
-      crewmates_win: Number,
-    },
-  }
+  },
 });
 
 export interface IModeStats {
@@ -27,8 +29,10 @@ export interface IModeStats {
 };
 
 export interface IServerStats {
-  mini: IModeStats,
-  full: IModeStats,
+  skeld: {
+    mini: IModeStats,
+    full: IModeStats,
+  }
 }
 
 interface IServerSchema extends Document {
