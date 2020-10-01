@@ -1,6 +1,8 @@
 
 import mongoose, { Document } from 'mongoose';
 import shortUserSchema, { IShortUser } from './shortUser';
+import { IGame } from './game';
+import { TGameMaps } from '../types';
 
 const userSchema = new mongoose.Schema({
   id: String,
@@ -9,6 +11,8 @@ const userSchema = new mongoose.Schema({
   history: [{
     reason: String,
     gameID: Number,
+    map: String,
+    team: String,
     changedBy: shortUserSchema,
     rating: {
       before: Number,
@@ -39,6 +43,8 @@ interface IChangeRating {
 
 interface IGameChangeRating extends IChangeRating {
   reason: 'win' | 'lose' | 'revert',
+  map: TGameMaps,
+  team: 'crewmates' | 'impostors',
   gameID: number,
 }
 

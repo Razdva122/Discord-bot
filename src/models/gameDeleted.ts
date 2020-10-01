@@ -32,6 +32,7 @@ const gameDeletedSchema = new mongoose.Schema({
   state: String,
   win: String,
   type: String,
+  map: String,
   impostors: [shortUserSchema],
   crewmates: [shortUserSchema],
   result: {

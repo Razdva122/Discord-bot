@@ -16,6 +16,7 @@ const gameCanceledSchema = new mongoose.Schema({
   id: Number,
   state: String,
   type: String,
+  map: String,
   players: [shortUserSchema],
   started_by: shortUserSchema,
   canceled_by: shortUserSchema,

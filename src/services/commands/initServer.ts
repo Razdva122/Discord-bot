@@ -45,16 +45,18 @@ export default class InitServer extends ServerlessCommand {
         serverID: guild.id, 
         lastGameID: 0,
         stats: {
-          mini: {
-            amount: 0,
-            imposters_win: 0,
-            crewmates_win: 0,
-          },
-          full: {
-            amount: 0,
-            imposters_win: 0,
-            crewmates_win: 0,
-          },
+          skeld: {
+            mini: {
+              amount: 0,
+              imposters_win: 0,
+              crewmates_win: 0,
+            },
+            full: {
+              amount: 0,
+              imposters_win: 0,
+              crewmates_win: 0,
+            },
+          }
         }, 
       }));
     if (createServer.error) {

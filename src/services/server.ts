@@ -1,6 +1,6 @@
 import { User, Guild, Message } from 'discord.js';
 
-import { TAnswer, TGameResult, IGameFinishState, TGameType } from '../types';
+import { TAnswer, TGameResult, IGameFinishState, TGameType, TGameMaps } from '../types';
 
 import {
   ServerModel, GameStartedModel, GameCanceledModel, 
@@ -16,7 +16,6 @@ import {
 
 import { IShortUser } from '../models/shortUser';
 import { Res, Err } from '../utils/response';
-import { stat } from 'fs';
 
 export class Server {
   readonly serverID: string
@@ -73,6 +72,7 @@ export class Server {
       id: this.lastGameID,
       state: 'started',
       type: usersInGame.length === gameSize.mini ? 'mini' : 'full',
+      map: 'skeld',
       players: usersInGame,
       started_by: {
         name: this.getNicknameOfAuthor(msg),
@@ -144,6 +144,7 @@ export class Server {
     const finishGame = await this.updateRatingAndFinishGame({
       id: gameID,
       type: prevGameState.type,
+      map: prevGameState.map,
       impostorsRes: gameStatus,
       impostors,
       crewmates,
@@ -173,7 +174,7 @@ export class Server {
     }).join(' | ');
     const impostorsLine = `Impostors: ${impostorsInString}`;
 
-    await this.updateStats(finishGame.result.data.type, finishGame.result.data.win === 'crewmates' ? 'crewmates_win' : 'imposters_win', 1);
+    await this.updateStats(finishGame.result.data.type, finishGame.result.data.map, finishGame.result.data.win === 'crewmates' ? 'crewmates_win' : 'imposters_win', 1);
     this.updateSystemMessages();
 
     return Res(`${firstLine}\n${secondLine}\n${crewmatesLine}\n${impostorsLine}`);
@@ -190,6 +191,7 @@ export class Server {
       id: state.id,
       state: "finished",
       win: state.impostorsRes === 'lose' ? 'crewmates' : 'impostors',
+      map: state.map,
       type: state.type,
       impostors: state.impostors,
       crewmates: state.crewmates,
@@ -222,6 +224,8 @@ export class Server {
       playerFromDB.gamesID.push(state.id);
       playerFromDB.history.push({
         reason: playerIs === 'impostor' ? state.impostorsRes : crewmatesRes[state.impostorsRes],
+        map: state.map,
+        team: playerIs === 'impostor' ? 'impostors' : 'crewmates',
         gameID: state.id,
         rating: {
           before: playerFromDB.rating - diff,
@@ -249,6 +253,7 @@ export class Server {
       id: prevGameState.id,
       state: 'canceled',
       type: prevGameState.type,
+      map: prevGameState.map,
       players: prevGameState.players,
       started_by: prevGameState.started_by,
       canceled_by: {
@@ -280,6 +285,7 @@ export class Server {
       crewmates: prevGameState.crewmates,
       win: prevGameState.win,
       type: prevGameState.type,
+      map: prevGameState.map,
       result: prevGameState.result,
       state: 'deleted',
       started_by: prevGameState.started_by,
@@ -343,6 +349,8 @@ export class Server {
       user.rating -= diff;
       user.history.push({
         reason: 'revert',
+        map: game.map,
+        team: game.impostors.find((u) => u.id === player.id) ? 'impostors' : 'crewmates',
         gameID: game.id,
         rating: {
           before: user.rating + diff,
@@ -353,7 +361,7 @@ export class Server {
       await user.save();
     }));
 
-    await this.updateStats(game.type, game.win === 'crewmates' ? 'crewmates_win' : 'imposters_win', -1);
+    await this.updateStats(game.type, game.map, game.win === 'crewmates' ? 'crewmates_win' : 'imposters_win', -1);
     await this.updateSystemMessages();
 
     return Res('Рейтинг возвращен');
@@ -428,10 +436,10 @@ export class Server {
     await this.systemMessages.stats.edit(stats);
   }
 
-  private async updateStats(type: TGameType, res: 'imposters_win' | 'crewmates_win', diff: 1 | -1): Promise<void> {
-    this.stats[type].amount += diff;
-    this.stats[type][res] += diff;
-    const res2 = await ServerModel.findOneAndUpdate({ id: this.serverID }, { stats: this.stats });
+  private async updateStats(type: TGameType, map: TGameMaps, res: 'imposters_win' | 'crewmates_win', diff: 1 | -1): Promise<void> {
+    this.stats[map][type].amount += diff;
+    this.stats[map][type][res] += diff;
+    await ServerModel.findOneAndUpdate({ id: this.serverID }, { stats: this.stats });
   }
 
   private async updateSystemMessages(): Promise<void> {
@@ -460,14 +468,14 @@ export class Server {
   private generateStats(): string {
     let message = `Статистика:\n`;
     message += `Полные игры (${gameSize.full} человек):\n`
-    message += `Количество игр: ${this.stats.full.amount}\n`;
-    message += `Imposters: Побед - ${this.stats.full.imposters_win}, Winrate - ${Math.round(this.stats.full.imposters_win / this.stats.full.amount * 100)} %\n`;
-    message += `Crewmates: Побед - ${this.stats.full.crewmates_win}, Winrate - ${Math.round(this.stats.full.crewmates_win / this.stats.full.amount * 100)} %\n`;
+    message += `Количество игр: ${this.stats.skeld.full.amount}\n`;
+    message += `Imposters: Побед - ${this.stats.skeld.full.imposters_win}, Winrate - ${Math.round(this.stats.skeld.full.imposters_win / this.stats.skeld.full.amount * 100)} %\n`;
+    message += `Crewmates: Побед - ${this.stats.skeld.full.crewmates_win}, Winrate - ${Math.round(this.stats.skeld.full.crewmates_win / this.stats.skeld.full.amount * 100)} %\n`;
     message += '\n';
     message += `Мини игры (${gameSize.mini} человек):\n`
-    message += `Количество игр: ${this.stats.mini.amount}\n`;
-    message += `Imposters: Побед - ${this.stats.mini.imposters_win}, Winrate - ${Math.round(this.stats.mini.imposters_win / this.stats.mini.amount * 100)} %\n`;
-    message += `Crewmates: Побед - ${this.stats.mini.crewmates_win}, Winrate - ${Math.round(this.stats.mini.crewmates_win / this.stats.mini.amount * 100)} %\n`;
+    message += `Количество игр: ${this.stats.skeld.mini.amount}\n`;
+    message += `Imposters: Побед - ${this.stats.skeld.mini.imposters_win}, Winrate - ${Math.round(this.stats.skeld.mini.imposters_win / this.stats.skeld.mini.amount * 100)} %\n`;
+    message += `Crewmates: Побед - ${this.stats.skeld.mini.crewmates_win}, Winrate - ${Math.round(this.stats.skeld.mini.crewmates_win / this.stats.skeld.mini.amount * 100)} %\n`;
     return '```d\n' + message + '```';
   }
 
@@ -511,16 +519,16 @@ export class Server {
       message += `Crewmates: *${game.crewmates.map((p) => p.name).join(', ')}*\n`;
       message += `Impostors: *${game.impostors.map((p) => p.name).join(', ')}*\n`;
     }
-    message += `Начал игру: ${game.started_by?.name}\n`;
+    message += `Начал игру: ${game.started_by.name}\n`;
     if (game.state === 'finished' || game.state === 'deleted') {
-      message += `Закончил игру: ${game.finished_by?.name}\n`;
+      message += `Закончил игру: ${game.finished_by.name}\n`;
       message += `Результат: Победа ${game.win === 'crewmates' ? 'Crewmates' : 'Impostors'}\n`;
     }
     if (game.state === 'deleted') {
       message += `Удалил игру: ${game.deleted_by.name}\n`;
     }
     if (game.state === 'canceled') {
-      message += `Отменил игру: ${game.canceled_by?.name}\n`;
+      message += `Отменил игру: ${game.canceled_by.name}\n`;
     }
     return Res(message);
   }
