@@ -56,7 +56,19 @@ export default class InitServer extends ServerlessCommand {
               imposters_win: 0,
               crewmates_win: 0,
             },
-          }
+          },
+          polus: {
+            mini: {
+              amount: 0,
+              imposters_win: 0,
+              crewmates_win: 0,
+            },
+            full: {
+              amount: 0,
+              imposters_win: 0,
+              crewmates_win: 0,
+            },
+          },
         }, 
       }));
     if (createServer.error) {

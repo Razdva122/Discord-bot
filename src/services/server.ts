@@ -6,7 +6,7 @@ import {
   ServerModel, GameStartedModel, GameCanceledModel, 
   UserModel, GameFinishedModel, IGameCanceled,
   IGameFinished, IGameStarted, GameDeletedModel, IGameDeleted,
-  IServerStats,
+  TServerStats, IGameChangeRating,
 } from '../models';
 
 import { 
@@ -16,6 +16,10 @@ import {
 
 import { IShortUser } from '../models/shortUser';
 import { Res, Err } from '../utils/response';
+
+function calculateWinrate(wins: number, loses: number): string {
+  return `${Math.floor(wins / (wins + loses) * 100)} %`;
+}
 
 export class Server {
   readonly serverID: string
@@ -33,10 +37,10 @@ export class Server {
       roleID: string,
     }
   }
-  stats: IServerStats
+  stats: TServerStats
   
   constructor({ adminsRoleID, verifiedRoleID, serverName, serverID, lastGameID, stats }: 
-    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string, lastGameID: number, stats: IServerStats }) {
+    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string, lastGameID: number, stats: TServerStats }) {
     this.users = {
       admins: {
         roleID: adminsRoleID,
@@ -65,14 +69,14 @@ export class Server {
     this.users[roleToChange].roleID === newRoleID;
   }
 
-  public async startGame(usersInGame: IShortUser[], msg: Message): Promise<TAnswer> {
+  public async startGame(map: TGameMaps, usersInGame: IShortUser[], msg: Message): Promise<TAnswer> {
     this.lastGameID += 1;
     await ServerModel.findOneAndUpdate({ id: this.serverID }, { lastGameID: this.lastGameID });
     const createGame = new GameStartedModel({
       id: this.lastGameID,
       state: 'started',
       type: usersInGame.length === gameSize.mini ? 'mini' : 'full',
-      map: 'skeld',
+      map,
       players: usersInGame,
       started_by: {
         name: this.getNicknameOfAuthor(msg),
@@ -383,25 +387,67 @@ export class Server {
       return Err('Мы не смогли найти вашу статистику в базе');
     }
 
-    let stats = `-------------**Статистика**-------------\n`;
-    stats += `Пользователь: ${msg.author.username}\n`
-    stats += `Текущий рейтинг: ${user.rating}\n\n`;
-    const games = user.history.filter(el => el.reason !== 'manualy' && el.reason !== 'revert');
-    const loses = games.filter(el => el.reason === 'lose');
-    const wins = games.filter(el => el.reason === 'win');
-    stats += `Общее количество игр: ${games.length}\n`;
-    stats += `Побед: ${wins.length}\n`;
-    stats += `Поражений: ${loses.length}\n`;
-    stats += `Процент побед: ${Math.floor(wins.length / games.length * 100)} %\n\n`;
-    stats += `Последние 10 изменений рейтинга\n`;
-    stats += '```d\n';
-    stats += 'Действие           GameID      Рейтинг\n';
-    stats += '-------------------------------------\n';
+    let statsMsg = `-------------**Статистика**-------------\n`;
+    statsMsg += `Пользователь: ${msg.author.username}\n`
+    statsMsg += `Текущий рейтинг: ${user.rating}\n\n`;
+    const games = user.history.filter(el => el.reason !== 'manualy' && el.reason !== 'revert') as IGameChangeRating[];
+    const polusGames = games.filter(el => el.map === 'polus');
+    const skeldGames = games.filter(el => el.map === 'skeld');
+    const maps: TGameMaps[] = ['skeld', 'polus'];
+    // TODO rewrite to O(N)
+    const stats = {
+      skeld: {
+        total: {
+          win: skeldGames.filter(el => el.reason === 'win').length,
+          lose: skeldGames.filter(el => el.reason === 'lose').length,
+        },
+        imposter: {
+          win: skeldGames.filter(el => el.team === 'impostors' && el.reason === 'win').length,
+          lose: skeldGames.filter(el => el.team === 'impostors' && el.reason === 'lose').length,
+        },
+        crewmate: {
+          win: skeldGames.filter(el => el.team === 'crewmates' && el.reason === 'win').length,
+          lose: skeldGames.filter(el => el.team === 'crewmates' && el.reason === 'lose').length,
+        },
+      },
+      polus: {
+        total: {
+          win: polusGames.filter(el => el.reason === 'win').length,
+          lose: polusGames.filter(el => el.reason === 'lose').length,
+        },
+        imposter: {
+          win: polusGames.filter(el => el.team === 'impostors' && el.reason === 'win').length,
+          lose: polusGames.filter(el => el.team === 'impostors' && el.reason === 'lose').length,
+        },
+        crewmate: {
+          win: polusGames.filter(el => el.team === 'crewmates' && el.reason === 'win').length,
+          lose: polusGames.filter(el => el.team === 'crewmates' && el.reason === 'lose').length,
+        },
+      },
+    };
+    const wins = stats.polus.imposter.win + stats.polus.crewmate.win
+      + stats.skeld.imposter.win + stats.skeld.crewmate.win;
+    const loses = games.length - wins;
+    statsMsg += `Общее количество игр: ${games.length}\n`;
+    statsMsg += `Побед: ${wins}\n`;
+    statsMsg += `Поражений: ${loses}\n`;
+    statsMsg += `Процент побед: ${Math.floor(wins / games.length * 100)} %\n\n`;
+    for (let map of maps) {
+      const mapStats = stats[map];
+      statsMsg += `Карта: ${map}\n`;
+      statsMsg += `Игры: ${mapStats.total.win}/${mapStats.total.lose} Процент побед: ${calculateWinrate(mapStats.total.win, mapStats.total.lose)}\n`;
+      statsMsg += `Imposters: ${mapStats.imposter.win}/${mapStats.imposter.lose} Процент побед: ${calculateWinrate(mapStats.imposter.win, mapStats.imposter.lose)}\n`;
+      statsMsg += `Crewmates: ${mapStats.crewmate.win}/${mapStats.crewmate.lose} Процент побед: ${calculateWinrate(mapStats.crewmate.win, mapStats.crewmate.lose)}\n\n`;
+    }
+    statsMsg += `Последние 10 изменений рейтинга\n`;
+    statsMsg += '```d\n';
+    statsMsg += 'Действие           GameID      Рейтинг\n';
+    statsMsg += '-------------------------------------\n';
     const lastActions = user.history.slice(user.history.length >= 10 ? user.history.length - 10 : 0);
     lastActions.forEach((el) => {
       const diff = el.rating.diff < 0 ? el.rating.diff : `+${el.rating.diff}`
       if (el.reason === 'manualy') {
-        stats += `Изменен в ручную               ${el.rating.before} ${diff}\n`;
+        statsMsg += `Изменен в ручную               ${el.rating.before} ${diff}\n`;
         return;
       }
       const startOfMsg = {
@@ -409,12 +455,12 @@ export class Server {
         'win': 'Победа в игре     ',
         'lose': 'Поражение в игре  ',
       }
-      stats += `${startOfMsg[el.reason]} ${el.gameID}          ${el.rating.before} ${diff}\n`;
+      statsMsg += `${startOfMsg[el.reason]} ${el.gameID}          ${el.rating.before} ${diff}\n`;
       return;
     });
-    stats += '```';
+    statsMsg += '```';
 
-    msg.author.send(stats);
+    msg.author.send(statsMsg);
     return Res('Статистика отправлена в личные сообщения');
   }
 
@@ -467,15 +513,21 @@ export class Server {
 
   private generateStats(): string {
     let message = `Статистика:\n`;
-    message += `Полные игры (${gameSize.full} человек):\n`
-    message += `Количество игр: ${this.stats.skeld.full.amount}\n`;
-    message += `Imposters: Побед - ${this.stats.skeld.full.imposters_win}, Winrate - ${Math.round(this.stats.skeld.full.imposters_win / this.stats.skeld.full.amount * 100)} %\n`;
-    message += `Crewmates: Побед - ${this.stats.skeld.full.crewmates_win}, Winrate - ${Math.round(this.stats.skeld.full.crewmates_win / this.stats.skeld.full.amount * 100)} %\n`;
-    message += '\n';
-    message += `Мини игры (${gameSize.mini} человек):\n`
-    message += `Количество игр: ${this.stats.skeld.mini.amount}\n`;
-    message += `Imposters: Побед - ${this.stats.skeld.mini.imposters_win}, Winrate - ${Math.round(this.stats.skeld.mini.imposters_win / this.stats.skeld.mini.amount * 100)} %\n`;
-    message += `Crewmates: Побед - ${this.stats.skeld.mini.crewmates_win}, Winrate - ${Math.round(this.stats.skeld.mini.crewmates_win / this.stats.skeld.mini.amount * 100)} %\n`;
+    const maps: TGameMaps[] = ['skeld', 'polus'];
+    for (let map of maps) {
+      const mapStats = this.stats[map];
+      message += `---------------------------------\n`;
+      message += `Карта: ${map}\n`;
+      message += `Полные игры (${gameSize.full} человек):\n`;
+      message += `Количество игр: ${mapStats.full.amount}\n`;
+      message += `Imposters: Побед - ${mapStats.full.imposters_win}, Winrate - ${Math.round(mapStats.full.imposters_win / mapStats.full.amount * 100)} %\n`;
+      message += `Crewmates: Побед - ${mapStats.full.crewmates_win}, Winrate - ${Math.round(mapStats.full.crewmates_win / mapStats.full.amount * 100)} %\n`;
+      message += '\n';
+      message += `Мини игры (${gameSize.mini} человек):\n`
+      message += `Количество игр: ${mapStats.mini.amount}\n`;
+      message += `Imposters: Побед - ${mapStats.mini.imposters_win}, Winrate - ${Math.round(mapStats.mini.imposters_win / mapStats.mini.amount * 100)} %\n`;
+      message += `Crewmates: Побед - ${mapStats.mini.crewmates_win}, Winrate - ${Math.round(mapStats.mini.crewmates_win / mapStats.mini.amount * 100)} %\n\n`;
+    }
     return '```d\n' + message + '```';
   }
 
@@ -513,6 +565,7 @@ export class Server {
     };
     message += `Статус: ${statusMap[game.state]}\n`;
     message += `Тип: ${game.type === 'mini' ? 'мини' : 'полная'}\n`;
+    message += `Карта: ${game.map}\n`;
     if (game.state === 'canceled' || game.state === 'started') {
       message += `Участники: *${game.players.map((p) => p.name).join(', ')}*\n`;
     } else {

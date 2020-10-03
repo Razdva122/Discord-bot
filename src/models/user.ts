@@ -41,7 +41,7 @@ interface IChangeRating {
   },
 }
 
-interface IGameChangeRating extends IChangeRating {
+export interface IGameChangeRating extends IChangeRating {
   reason: 'win' | 'lose' | 'revert',
   map: TGameMaps,
   team: 'crewmates' | 'impostors',

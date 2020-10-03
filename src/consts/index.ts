@@ -75,7 +75,7 @@ export const commandHelp: { readonly [key in TAPIMethods]: string } = {
   'initLeaderboard': '\n!initLeaderboard',
   'initStats': '\n!initStats',
   'changeRating': '\n!changeRating [Изменение рейтинга] [@user]\n!changeRating -20 @someone',
-  'startGame': `\n!startGame [Название голосовой комнаты]\n!startGame Спутник`,
+  'startGame': `\n!startGame [Название голосовой комнаты] [Название карты skeld или polus]\n!startGame Спутник skeld`,
   'cancelGame': `\n!cancelGame [gameID]\n!cancelGame 138`,
   'endGame': `\n!endGame [gameID] [win (победа Импосторов) или lose (поражение)] [@impostor1] [@impostor2]\n!endGame win 138 @someone @someonelse`,
   'stats': '\n!stats',
