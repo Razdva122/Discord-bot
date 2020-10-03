@@ -1,4 +1,5 @@
 import mongoose, { Document } from 'mongoose';
+import { TGameMaps } from '../types';
 
 const serverSchema = new mongoose.Schema({
   name: String,
@@ -19,6 +20,18 @@ const serverSchema = new mongoose.Schema({
         crewmates_win: Number,
       },
     },
+    polus: {
+      mini: {
+        amount: Number,
+        imposters_win: Number,
+        crewmates_win: Number,
+      },
+      full: {
+        amount: Number,
+        imposters_win: Number,
+        crewmates_win: Number,
+      },
+    },
   },
 });
 
@@ -28,12 +41,12 @@ export interface IModeStats {
   crewmates_win: number,
 };
 
-export interface IServerStats {
-  skeld: {
+export type TServerStats = {
+  [key in TGameMaps]: {
     mini: IModeStats,
     full: IModeStats,
   }
-}
+};
 
 interface IServerSchema extends Document {
   name: string,
@@ -41,7 +54,7 @@ interface IServerSchema extends Document {
   lastGameID: number,
   adminsID: string,
   verifiedID: string,
-  stats: IServerStats,
+  stats: TServerStats,
 }
 
 export const ServerModel = mongoose.model<IServerSchema>('Server', serverSchema);

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v2.0.1 2020-10-03
+
+### Added
+
+- Указание карты при старте игры
+
+### Changed
+
+- Переработана часть статистики под две карты
 
 ## v2.0.0 2020-10-01 Старт сезона
 

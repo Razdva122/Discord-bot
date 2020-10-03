@@ -2,7 +2,7 @@ import { User, Message } from 'discord.js';
 
 import { IShortUser } from '../models/shortUser';
 
-import { IServerStats } from '../models';
+import { TServerStats } from '../models';
 
 export * from './util';
 
@@ -10,7 +10,7 @@ export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
 
 export type TGameType = 'mini' | 'full';
 
-export type TGameMaps = 'skeld';
+export type TGameMaps = 'skeld' | 'polus';
 
 export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
@@ -39,7 +39,7 @@ export interface IServersFromMongo {
   lastGameID: number,
   adminsRoleID: string,
   verifiedRoleID: string,
-  stats: IServerStats,
+  stats: TServerStats,
 }
 
 export type TAnswerResult<T> = {
