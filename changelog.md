@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v2.0.2 2020-10-04
+
+### Added
+
+- Статус боту с кол-вом игр и игроков
+- Обработка ошибки если не смогли отправить статистику пользователю
+- Улучшен алгоритм высчитывания статистики
+
 ## v2.0.1 2020-10-03
 
 ### Added

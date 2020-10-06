@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { Message, Client } from 'discord.js';
 
 import { ServerlessCommand } from './command';
 import { Server } from '../server';
@@ -21,7 +21,7 @@ export default class InitServer extends ServerlessCommand {
     return Res('Команда корректна');
   }
 
-  async executeCommand(args: string[], msg: Message, ServersClaster: ServersClaster): Promise<TAnswer> {
+  async executeCommand(args: string[], msg: Message, ServersClaster: ServersClaster, client: Client): Promise<TAnswer> {
     const guild = msg.guild!;
     const [adminsRole, verifiedRole] = args;
 
@@ -39,11 +39,13 @@ export default class InitServer extends ServerlessCommand {
 
     const createServer = await ServersClaster.setNewServer(guild.id, 
       new Server({ 
-        adminsRoleID, 
+        adminsRoleID,
         verifiedRoleID, 
-        serverName, 
+        serverName,
+        client,
         serverID: guild.id, 
         lastGameID: 0,
+        playersAmount: 0,
         stats: {
           skeld: {
             mini: {

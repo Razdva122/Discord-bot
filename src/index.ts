@@ -13,29 +13,31 @@ import CommandController from './services/commandController';
 const client = new Client();
 
 async function start() {
+  let commandController: CommandController;
+
   try {
     await mongoose.connect(`mongodb+srv://${settings.mongoUser.user}:${settings.mongoUser.password}@cluster0.nm0xd.mongodb.net/${settings.mongoDB}`, {
       useNewUrlParser: true,
       useFindAndModify: false,
     });
 
-    const servers = await ServerModel.find({});
-
-    const serverClaster = new ServersClaster(servers.map((server) => {
-      return {
-        name: server.name,
-        serverID: server.id,
-        adminsRoleID: server.adminsID,
-        verifiedRoleID: server.verifiedID,
-        lastGameID: server.lastGameID,
-        stats: server.stats,
-      }
-    }));
-
-    const commandController = new CommandController(serverClaster);
-
-    client.on('ready', () => {
+    client.on('ready', async () => {
       console.log(`[INFO] Logged in as ${client.user!.tag}!`);
+
+      const servers = await ServerModel.find({});
+
+      const serverClaster = new ServersClaster(servers.map((server) => {
+        return {
+          name: server.name,
+          serverID: server.id,
+          adminsRoleID: server.adminsID,
+          verifiedRoleID: server.verifiedID,
+          lastGameID: server.lastGameID,
+          stats: server.stats,
+        }
+      }), client);
+  
+      commandController = new CommandController(serverClaster);
     });
     
     client.on('message', async (msg) => {
@@ -51,7 +53,7 @@ async function start() {
         return;
       }
     
-      const commandRes = await commandController.processMessage(msg);
+      const commandRes = await commandController.processMessage(msg, client);
       if (commandRes.error) {
         msg.reply(`[ОШИБКА] ${commandRes.error.msg}`)
       } else {
