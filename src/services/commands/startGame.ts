@@ -17,7 +17,7 @@ export default class StartGame extends ServerCommand {
       return Err('Нужно передать название канала в котором стартует игра');
     }
     if (!gameMap) {
-      return Err('Нужно передать название карты на которой начианется игра **skeld** или **polus**');
+      return Err('Нужно передать название карты на которой начинается игра **skeld** или **polus**');
     }
     const mapNormalized = gameMap.toLowerCase();
     if (mapNormalized !== 'skeld' && mapNormalized !== 'polus') {

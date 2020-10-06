@@ -1,4 +1,4 @@
-import { User, Guild, Message } from "discord.js";
+import { User, Guild, Message, Client } from "discord.js";
 
 import { mainOwnerID, accessLevel } from "../../consts/index";
 
@@ -34,7 +34,7 @@ export abstract class Command {
 export abstract class ServerlessCommand extends Command {
   type = 'serverless';
 
-  abstract async executeCommand(args: string[], msg: Message, serversClaster: ServersClaster): Promise<TAnswer>
+  abstract async executeCommand(args: string[], msg: Message, serversClaster: ServersClaster, client: Client): Promise<TAnswer>
 }
 
 export abstract class ServerCommand extends Command {

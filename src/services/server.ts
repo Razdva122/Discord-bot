@@ -1,4 +1,4 @@
-import { User, Guild, Message } from 'discord.js';
+import { User, Guild, Message, Client } from 'discord.js';
 
 import { TAnswer, TGameResult, IGameFinishState, TGameType, TGameMaps } from '../types';
 
@@ -27,7 +27,9 @@ export class Server {
     leaderboard: null | Message,
     stats: null | Message,
   } = { leaderboard: null, stats: null };
+  client: Client
   lastGameID: number
+  playersAmount: number
   name: string
   users: { 
     admins: {
@@ -39,8 +41,8 @@ export class Server {
   }
   stats: TServerStats
   
-  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID, lastGameID, stats }: 
-    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string, lastGameID: number, stats: TServerStats }) {
+  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID, lastGameID, playersAmount, stats, client }: 
+    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string, playersAmount: number, lastGameID: number, stats: TServerStats, client: Client }) {
     this.users = {
       admins: {
         roleID: adminsRoleID,
@@ -54,6 +56,8 @@ export class Server {
 
     this.serverID = serverID;
     this.lastGameID = lastGameID;
+    this.playersAmount = playersAmount;
+    this.client = client;
 
     this.stats = stats;
   }
@@ -88,6 +92,7 @@ export class Server {
     await Promise.all(usersInGame.map(async (user) => {
       const userInDB = await UserModel.findOneAndUpdate({ id: user.id }, { name: user.name });
       if (!userInDB) {
+        this.playersAmount += 1;
         const newUser = new UserModel({ id: user.id, name: user.name, gamesID: [], history: [], rating: defaultRating });
         await newUser.save();
       }
@@ -391,42 +396,26 @@ export class Server {
     statsMsg += `Пользователь: ${msg.author.username}\n`
     statsMsg += `Текущий рейтинг: ${user.rating}\n\n`;
     const games = user.history.filter(el => el.reason !== 'manualy' && el.reason !== 'revert') as IGameChangeRating[];
-    const polusGames = games.filter(el => el.map === 'polus');
-    const skeldGames = games.filter(el => el.map === 'skeld');
-    const maps: TGameMaps[] = ['skeld', 'polus'];
-    // TODO rewrite to O(N)
     const stats = {
       skeld: {
-        total: {
-          win: skeldGames.filter(el => el.reason === 'win').length,
-          lose: skeldGames.filter(el => el.reason === 'lose').length,
-        },
-        imposter: {
-          win: skeldGames.filter(el => el.team === 'impostors' && el.reason === 'win').length,
-          lose: skeldGames.filter(el => el.team === 'impostors' && el.reason === 'lose').length,
-        },
-        crewmate: {
-          win: skeldGames.filter(el => el.team === 'crewmates' && el.reason === 'win').length,
-          lose: skeldGames.filter(el => el.team === 'crewmates' && el.reason === 'lose').length,
-        },
+        total: { win: 0, lose: 0 },
+        impostor: { win: 0, lose: 0 },
+        crewmate: { win: 0, lose: 0 },
       },
       polus: {
-        total: {
-          win: polusGames.filter(el => el.reason === 'win').length,
-          lose: polusGames.filter(el => el.reason === 'lose').length,
-        },
-        imposter: {
-          win: polusGames.filter(el => el.team === 'impostors' && el.reason === 'win').length,
-          lose: polusGames.filter(el => el.team === 'impostors' && el.reason === 'lose').length,
-        },
-        crewmate: {
-          win: polusGames.filter(el => el.team === 'crewmates' && el.reason === 'win').length,
-          lose: polusGames.filter(el => el.team === 'crewmates' && el.reason === 'lose').length,
-        },
+        total: { win: 0, lose: 0 },
+        impostor: { win: 0, lose: 0 },
+        crewmate: { win: 0, lose: 0 },
       },
     };
-    const wins = stats.polus.imposter.win + stats.polus.crewmate.win
-      + stats.skeld.imposter.win + stats.skeld.crewmate.win;
+    games.forEach((game) => {
+      const result = game.reason as 'win' | 'lose';
+      stats[game.map].total[result] += 1;
+      stats[game.map][game.team === 'impostors' ? 'impostor' : 'crewmate'][result] += 1;
+    });
+    const maps: TGameMaps[] = ['skeld', 'polus'];
+    const wins = stats.polus.impostor.win + stats.polus.crewmate.win
+      + stats.skeld.impostor.win + stats.skeld.crewmate.win;
     const loses = games.length - wins;
     statsMsg += `Общее количество игр: ${games.length}\n`;
     statsMsg += `Побед: ${wins}\n`;
@@ -436,7 +425,7 @@ export class Server {
       const mapStats = stats[map];
       statsMsg += `Карта: ${map}\n`;
       statsMsg += `Игры: ${mapStats.total.win}/${mapStats.total.lose} Процент побед: ${calculateWinrate(mapStats.total.win, mapStats.total.lose)}\n`;
-      statsMsg += `Imposters: ${mapStats.imposter.win}/${mapStats.imposter.lose} Процент побед: ${calculateWinrate(mapStats.imposter.win, mapStats.imposter.lose)}\n`;
+      statsMsg += `Imposters: ${mapStats.impostor.win}/${mapStats.impostor.lose} Процент побед: ${calculateWinrate(mapStats.impostor.win, mapStats.impostor.lose)}\n`;
       statsMsg += `Crewmates: ${mapStats.crewmate.win}/${mapStats.crewmate.lose} Процент побед: ${calculateWinrate(mapStats.crewmate.win, mapStats.crewmate.lose)}\n\n`;
     }
     statsMsg += `Последние 10 изменений рейтинга\n`;
@@ -460,7 +449,11 @@ export class Server {
     });
     statsMsg += '```';
 
-    msg.author.send(statsMsg);
+    try {
+      await msg.author.send(statsMsg);
+    } catch (e) {
+      return Err('Не удалось отправить вам сообщение');
+    }
     return Res('Статистика отправлена в личные сообщения');
   }
 
@@ -491,6 +484,10 @@ export class Server {
   private async updateSystemMessages(): Promise<void> {
     await this.updateLeaderboardMsg();
     await this.updateStatsMsg();
+    await this.client.user?.setActivity({
+      name: `Игр: ${this.lastGameID} | Игроков: ${this.playersAmount}`,
+      type: 'WATCHING',
+    });
   }
 
   private async generateLeaderboard(): Promise<string> {

@@ -1,5 +1,5 @@
 
-import { Message } from 'discord.js';
+import { Message, Client } from 'discord.js';
 
 import { TAnswer } from '../types';
 
@@ -17,7 +17,7 @@ export default class commandController {
     this.serverClaster = serverClaster;
   }
 
-  async processMessage(msg: Message): Promise<TAnswer> {
+  async processMessage(msg: Message, client: Client): Promise<TAnswer> {
     const [method, ...args] = msg.content.replace(/  +/g, ' ').trim().split(' ');
 
     const methodNormalized = method.toLowerCase();
@@ -57,7 +57,7 @@ export default class commandController {
         return permissionRes;
       }
 
-      return await command.executeCommand(args, msg, this.serverClaster);
+      return await command.executeCommand(args, msg, this.serverClaster, client);
     }
   }
 
