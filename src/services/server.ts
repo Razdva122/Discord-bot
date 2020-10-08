@@ -16,9 +16,10 @@ import {
 
 import { IShortUser } from '../models/shortUser';
 import { Res, Err } from '../utils/response';
+import { generateTable, TTableOptions } from '../utils/table';
 
 function calculateWinrate(wins: number, loses: number): string {
-  return `${Math.floor(wins / (wins + loses) * 100)} %`;
+  return `${Math.floor(wins / (wins + loses) * 100) || 0} %`;
 }
 
 export class Server {
@@ -389,7 +390,7 @@ export class Server {
   public async getStats(msg: Message): Promise<TAnswer> {
     const user = await UserModel.findOne({ id: msg.author.id });
     if (!user) {
-      return Err('Мы не смогли найти вашу статистику в базе');
+      return Err('Мы не смогли найти вашу статистику в базе (Статистика появится после первой рейтинговой игры)');
     }
 
     let statsMsg = `-------------**Статистика**-------------\n`;
@@ -414,45 +415,65 @@ export class Server {
       stats[game.map][game.team === 'impostors' ? 'impostor' : 'crewmate'][result] += 1;
     });
     const maps: TGameMaps[] = ['skeld', 'polus'];
-    const wins = stats.polus.impostor.win + stats.polus.crewmate.win
-      + stats.skeld.impostor.win + stats.skeld.crewmate.win;
-    const loses = games.length - wins;
-    statsMsg += `Общее количество игр: ${games.length}\n`;
-    statsMsg += `Побед: ${wins}\n`;
-    statsMsg += `Поражений: ${loses}\n`;
-    statsMsg += `Процент побед: ${Math.floor(wins / games.length * 100)} %\n\n`;
     for (let map of maps) {
       const mapStats = stats[map];
-      statsMsg += `Карта: ${map}\n`;
-      statsMsg += `Игры: ${mapStats.total.win}/${mapStats.total.lose} Процент побед: ${calculateWinrate(mapStats.total.win, mapStats.total.lose)}\n`;
-      statsMsg += `Imposters: ${mapStats.impostor.win}/${mapStats.impostor.lose} Процент побед: ${calculateWinrate(mapStats.impostor.win, mapStats.impostor.lose)}\n`;
-      statsMsg += `Crewmates: ${mapStats.crewmate.win}/${mapStats.crewmate.lose} Процент побед: ${calculateWinrate(mapStats.crewmate.win, mapStats.crewmate.lose)}\n\n`;
+      const dataMap = [
+        ['Общее', 'Impostor', 'Crewmate'],
+        [mapStats.total.win + mapStats.total.lose, mapStats.impostor.win + mapStats.impostor.lose, mapStats.crewmate.win + mapStats.crewmate.lose],
+        [mapStats.total.win, mapStats.impostor.win, mapStats.crewmate.win],
+        [mapStats.total.lose, mapStats.impostor.lose, mapStats.crewmate.lose],
+        [calculateWinrate(mapStats.total.win, mapStats.total.lose), calculateWinrate(mapStats.impostor.win, mapStats.impostor.lose), calculateWinrate(mapStats.crewmate.win, mapStats.crewmate.lose)],
+      ];
+
+      const optionsMap: TTableOptions = {
+        tableTitle: true,
+        markdown: 'd',
+        data: [
+          { rowTitle: 'Team', length: 10 },
+          { rowTitle: 'Кол-во игр', length: 10 },
+          { rowTitle: 'Побед', length: 10 },
+          { rowTitle: 'Поражений', length: 10 },
+          { rowTitle: 'Процент побед', length: 14 },
+        ]
+      };
+      statsMsg += `Карта: **${map}**\n` + generateTable(dataMap, optionsMap) + '\n';
     }
-    statsMsg += `Последние 10 изменений рейтинга\n`;
-    statsMsg += '```d\n';
-    statsMsg += 'Действие           GameID      Рейтинг\n';
-    statsMsg += '-------------------------------------\n';
     const lastActions = user.history.slice(user.history.length >= 10 ? user.history.length - 10 : 0);
-    lastActions.forEach((el) => {
-      const diff = el.rating.diff < 0 ? el.rating.diff : `+${el.rating.diff}`
-      if (el.reason === 'manualy') {
-        statsMsg += `Изменен в ручную               ${el.rating.before} ${diff}\n`;
-        return;
-      }
+    const dataActions = lastActions.reduce<[string[],string[],string[]]>((acc, action) => {
       const startOfMsg = {
-        'revert': 'Возврат за игру   ',
-        'win': 'Победа в игре     ',
-        'lose': 'Поражение в игре  ',
+        'manualy': 'Изменен в ручную',
+        'revert': 'Возврат за игру',
+        'win': 'Победа в игре',
+        'lose': 'Поражение в игре',
       }
-      statsMsg += `${startOfMsg[el.reason]} ${el.gameID}          ${el.rating.before} ${diff}\n`;
-      return;
-    });
-    statsMsg += '```';
+      acc[0].push(startOfMsg[action.reason]);
+      if (action.reason === 'manualy') {
+        acc[1].push('')
+      } else {
+        acc[1].push(String(action.gameID))
+      }
+      const diff = action.rating.diff < 0 ? action.rating.diff : `+${action.rating.diff}`
+      acc[2].push(`${action.rating.before} ${diff}`)
+      return acc;
+    }, [[],[],[]]);
+
+    const options: TTableOptions = {
+      title: `Последние 10 изменений рейтинга`,
+      tableTitle: true,
+      markdown: 'd',
+      data: [
+        { rowTitle: 'Действие', length: 18 }, 
+        { rowTitle: 'GameID', length: 6 }, 
+        { rowTitle: 'Рейтинг', length: 10 },
+      ]
+    };
+
+    statsMsg += generateTable(dataActions, options);
 
     try {
       await msg.author.send(statsMsg);
     } catch (e) {
-      return Err('Не удалось отправить вам сообщение');
+      return Err('Не удалось отправить вам сообщение (Возможно у вас закрыты личные сообщения)');
     }
     return Res('Статистика отправлена в личные сообщения');
   }
@@ -493,19 +514,25 @@ export class Server {
   private async generateLeaderboard(): Promise<string> {
     const bestUsers = await UserModel.find().sort({ rating: -1 }).limit(usersInLeaderboard);
 
-    const message = bestUsers.map((user, index) => {
-      let username = user.name.split('').filter((char) => char !== `'`).join('');
-      if (username.length <= maxNicknameForLeadeboardLength) {
-        while(username.length < maxNicknameForLeadeboardLength) {
-          username += ' ';
-        }
-      } else {
-        username = username.slice(0, maxNicknameForLeadeboardLength - 3) + '...';
-      }
-      return `${index + 1}. ${index < 9 ? ' ' : ''}${username} ${user.rating}`;
-    }).join('\n');
+    const data = bestUsers.reduce<[string[], string[], number[]]>((acc, user, index) => {
+      acc[0].push(String(index + 1) + '.');
+      acc[1].push(user.name);
+      acc[2].push(user.rating);
+      return acc;
+    }, [[],[],[]]);
 
-    return '```d\n' + `Лидерборд ТОП-${bestUsers.length}\n` + message + '```';
+    const options: TTableOptions = {
+      title: `Лидерборд ТОП-${bestUsers.length}`,
+      tableTitle: true,
+      markdown: 'd',
+      data: [
+        { rowTitle: '', length: 3 },
+        { rowTitle: 'Никнейм', length: maxNicknameForLeadeboardLength }, 
+        { rowTitle: 'Рейтинг', length: 8 }
+      ]
+    };
+
+    return generateTable(data, options);
   }
 
   private generateStats(): string {

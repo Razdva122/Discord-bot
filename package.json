@@ -1,6 +1,6 @@
 {
   "name": "ts-discord-bot",
-  "version": "2.0.1",
+  "version": "2.0.3",
   "description": "Bot for game among us",
   "main": "index.ts",
   "dependencies": {
