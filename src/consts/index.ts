@@ -4,7 +4,7 @@ export const defaultRating = 2000;
 
 export const usersInLeaderboard = 50;
 
-export const maxNicknameForLeadeboardLength = 15;
+export const maxNicknameForLeadeboardLength = 18;
 
 export const ratingChange = {
   crewmate: {
