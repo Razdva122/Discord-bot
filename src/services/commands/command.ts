@@ -51,7 +51,7 @@ export abstract class ServerCommand extends Command {
       userLevelOfPermissions = accessLevel.admins;
     }
 
-    if (this.validateOwnerPermission(user)) {
+    if (this.validateOwnerPermission(user).result) {
       userLevelOfPermissions = accessLevel.owner;
     }
 

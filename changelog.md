@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v2.0.4 2020-10-16
+
+### Fixed
+
+- Все считались ownerами бота на сервере
+
 ## v2.0.3 2020-10-08
 
 ### Changed
