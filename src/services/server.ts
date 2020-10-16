@@ -99,7 +99,7 @@ export class Server {
       }
     }));
 
-    return Res(`Создана игра с ID: ${this.lastGameID}. Участники: ${usersInGame.map((user) => user.name).join(', ')}`);
+    return Res(`Создана ${usersInGame.length === gameSize.mini ? 'mini' : 'full'} игра с ID: **${this.lastGameID}**. Участники: ${usersInGame.map((user) => user.name).join(', ')}`);
   }
 
   public async endGame(gameID: number, gameStatus: TGameResult, msg: Message): Promise<TAnswer> {
