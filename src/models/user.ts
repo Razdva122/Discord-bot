@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     reason: String,
     gameID: Number,
     map: String,
+    gameType: String,
     team: String,
     changedBy: shortUserSchema,
     rating: {
@@ -44,6 +45,7 @@ interface IChangeRating {
 export interface IGameChangeRating extends IChangeRating {
   reason: 'win' | 'lose' | 'revert',
   map: TGameMaps,
+  gameType: 'full' | 'mini',
   team: 'crewmates' | 'impostors',
   gameID: number,
 }

@@ -236,6 +236,7 @@ export class Server {
         reason: playerIs === 'impostor' ? state.impostorsRes : crewmatesRes[state.impostorsRes],
         map: state.map,
         team: playerIs === 'impostor' ? 'impostors' : 'crewmates',
+        gameType: state.type,
         gameID: state.id,
         rating: {
           before: playerFromDB.rating - diff,
@@ -319,31 +320,40 @@ export class Server {
     }
 
     const users = mentions.array();
-    if (users.length !== 1) {
-      return Err('В команде нужно указать одного юзера');
+
+    const res: {
+      success: string[],
+      error: string[],
+    } = {
+      success: [],
+      error: [],
     }
 
-    const user = await UserModel.findOne({ id: users[0].id });
-    if (!user) {
-      return Err('Юзер не найден в базе данных');
-    }
+    await Promise.all(users.map(async (mention) => {
+      const user = await UserModel.findOne({ id: mention.id });
+      if (!user) {
+        res.error.push(msg.guild?.member(mention)?.nickname || mention.user.username);
+        return;
+      }
 
-    user.rating += diff;
-    user.history.push({
-      reason: 'manualy',
-      changedBy: {
-        name: this.getNicknameOfAuthor(msg),
-        id: msg.author.id,
-      },
-      rating: {
-        before: user.rating - diff,
-        after: user.rating,
-        diff,
-      },
-    });
-    await user.save();
+      user.rating += diff;
+      user.history.push({
+        reason: 'manualy',
+        changedBy: {
+          name: this.getNicknameOfAuthor(msg),
+          id: msg.author.id,
+        },
+        rating: {
+          before: user.rating - diff,
+          after: user.rating,
+          diff,
+        },
+      });
+      await user.save();
+      res.success.push(msg.guild?.member(mention)?.nickname || mention.user.username);
+    }));
 
-    return Res(`Рейтинг юзера ${msg.guild?.member(users[0])?.nickname || users[0].user.username} изменен на ${diff}`);
+    return Res(`${res.success.length ? `Рейтинг юзеров **${res.success.join(', ')}** изменен на ${diff}\n` : ''}${res.error.length ? `Произошла ошибка при обновлении рейтинга: **${res.error.join(', ')}**` : ''}`);
   }
 
   private async revertRating(game: IGameFinished): Promise<TAnswer> {
@@ -361,6 +371,7 @@ export class Server {
         reason: 'revert',
         map: game.map,
         team: game.impostors.find((u) => u.id === player.id) ? 'impostors' : 'crewmates',
+        gameType: game.type,
         gameID: game.id,
         rating: {
           before: user.rating + diff,

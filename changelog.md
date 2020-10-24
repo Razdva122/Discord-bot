@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v2.0.5 2020-10-24
+
+### Added
+
+- В историю игр юзера добавлено тип игры `full || mini`
+
+### Changed
+
+- Метод changerating теперь работает с несколькими юзерами
+
 ## v2.0.4 2020-10-16
 
 ### Fixed
