@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.0.0 2020-10-30
+
+### Changed
+
+- Изменен принцип начисления рейтинга
+
+### Delete
+
+- Удалена возможность создавать mini игры
+
 ## v2.0.5 2020-10-24
 
 ### Added
