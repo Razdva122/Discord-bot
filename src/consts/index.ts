@@ -8,18 +8,13 @@ export const maxNicknameForLeadeboardLength = 18;
 
 export const ratingChange = {
   crewmate: {
-    mini: 5,
-    full: 10,
+    win: 5,
+    lose: -10,
   },
   impostor: {
-    mini: 10,
-    full: 20,
+    win: 40,
+    lose: -20,
   },
-};
-
-export const gameSize = {
-  mini: 5,
-  full: 10,
 };
 
 export const accessLevel: { readonly [key in TAccessLevel]: number } = {

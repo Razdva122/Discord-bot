@@ -10,7 +10,7 @@ import {
 } from '../models';
 
 import { 
-  defaultRating, ratingChange, gameSize,
+  defaultRating, ratingChange,
   usersInLeaderboard, maxNicknameForLeadeboardLength,
 } from '../consts';
 
@@ -80,7 +80,7 @@ export class Server {
     const createGame = new GameStartedModel({
       id: this.lastGameID,
       state: 'started',
-      type: usersInGame.length === gameSize.mini ? 'mini' : 'full',
+      type: 'full',
       map,
       players: usersInGame,
       started_by: {
@@ -99,7 +99,7 @@ export class Server {
       }
     }));
 
-    return Res(`Создана ${usersInGame.length === gameSize.mini ? 'mini' : 'full'} игра с ID: **${this.lastGameID}**. Участники: ${usersInGame.map((user) => user.name).join(', ')}`);
+    return Res(`Создана игра с ID: **${this.lastGameID}**. Участники: ${usersInGame.map((user) => user.name).join(', ')}`);
   }
 
   public async endGame(gameID: number, gameStatus: TGameResult, msg: Message): Promise<TAnswer> {
@@ -121,16 +121,8 @@ export class Server {
       }
     });
 
-    if (prevGameState.players.length === gameSize.mini) {
-      if (impostors.length !== 1) {
-        return Err(`В игре на ${gameSize.mini} человек, должен быть один импостер`);
-      }
-    }
-
-    if (prevGameState.players.length === gameSize.full) {
-      if (impostors.length !== 2) {
-        return Err(`В игре на ${gameSize.full} человек, должно быть два импостера`);
-      }
+    if (impostors.length !== 2) {
+      return Err(`В игре на 10 человек, должно быть два импостера`);
     }
 
     if (!prevGameState.players.some((player) => player.id === impostors[0].id)) {
@@ -215,14 +207,13 @@ export class Server {
 
     await Promise.all(players.map(async (player) => {
       const playerIs = state.impostors.some((impostor) => impostor.id === player.id) ? 'impostor' : 'crewmate';
-      let diff = ratingChange[playerIs][state.type];
-      if (playerIs === 'impostor' && state.impostorsRes === 'lose') {
-        diff *= -1;
+      let diff: number;
+      if (playerIs === 'impostor') {
+        diff = ratingChange[playerIs][state.impostorsRes];
+      } else {
+        diff = ratingChange[playerIs][state.impostorsRes === 'lose' ? 'win' : 'lose'];
       }
 
-      if (playerIs === 'crewmate' && state.impostorsRes === 'win') {
-        diff *= -1;
-      }
       const playerFromDB = await UserModel.findOne({ id: player.id });
 
       if (!playerFromDB) {
@@ -553,15 +544,10 @@ export class Server {
       const mapStats = this.stats[map];
       message += `---------------------------------\n`;
       message += `Карта: ${map}\n`;
-      message += `Полные игры (${gameSize.full} человек):\n`;
+      message += `Полные игры (10 человек):\n`;
       message += `Количество игр: ${mapStats.full.amount}\n`;
       message += `Imposters: Побед - ${mapStats.full.imposters_win}, Winrate - ${Math.round(mapStats.full.imposters_win / mapStats.full.amount * 100)} %\n`;
-      message += `Crewmates: Побед - ${mapStats.full.crewmates_win}, Winrate - ${Math.round(mapStats.full.crewmates_win / mapStats.full.amount * 100)} %\n`;
-      message += '\n';
-      message += `Мини игры (${gameSize.mini} человек):\n`
-      message += `Количество игр: ${mapStats.mini.amount}\n`;
-      message += `Imposters: Побед - ${mapStats.mini.imposters_win}, Winrate - ${Math.round(mapStats.mini.imposters_win / mapStats.mini.amount * 100)} %\n`;
-      message += `Crewmates: Побед - ${mapStats.mini.crewmates_win}, Winrate - ${Math.round(mapStats.mini.crewmates_win / mapStats.mini.amount * 100)} %\n\n`;
+      message += `Crewmates: Побед - ${mapStats.full.crewmates_win}, Winrate - ${Math.round(mapStats.full.crewmates_win / mapStats.full.amount * 100)} %\n\n`;
     }
     return '```d\n' + message + '```';
   }

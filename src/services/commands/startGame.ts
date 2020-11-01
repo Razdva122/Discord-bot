@@ -5,8 +5,6 @@ import { Message } from 'discord.js';
 
 import { Res, Err } from "../../utils/response";
 
-import { gameSize } from '../../consts';
-
 import { TAnswer, TGameMaps } from "../../types";
 
 // !startGame roomName gameMap
@@ -39,8 +37,8 @@ export default class StartGame extends ServerCommand {
       name: member.guild.member(member)?.nickname || member.user.username,
     }));
 
-    if (channelMembers.length !== gameSize.mini && channelMembers.length !== gameSize.full) {
-      return Err(`Игру можно начать только на ${gameSize.mini} или ${gameSize.full} человек. В комнате сейчас ${channelMembers.length}`);
+    if (channelMembers.length !== 10) {
+      return Err(`Игру можно начать только на 10 человек. В комнате сейчас ${channelMembers.length}`);
     }
 
     return await server.startGame(gameMap.toLowerCase() as TGameMaps, channelMembers, msg);
