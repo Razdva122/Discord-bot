@@ -389,7 +389,7 @@ export class Server {
     this.systemMessages.stats = await msg.channel.send(stats);
   }
 
-  public async getStats(msg: Message): Promise<TAnswer> {
+  public async getStats(msg: Message, showStat: boolean): Promise<TAnswer> {
     const user = await UserModel.findOne({ id: msg.author.id });
     if (!user) {
       return Err('Мы не смогли найти вашу статистику в базе (Статистика появится после первой рейтинговой игры)');
@@ -477,7 +477,7 @@ export class Server {
     } catch (e) {
       return Err('Не удалось отправить вам сообщение (Возможно у вас закрыты личные сообщения)');
     }
-    return Res('Статистика отправлена в личные сообщения');
+    return Res(`Статистика отправлена в личные сообщения\n${showStat ? statsMsg : ''}`);
   }
 
   private async updateLeaderboardMsg(): Promise<void> {
