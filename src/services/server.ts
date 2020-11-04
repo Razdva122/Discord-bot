@@ -472,12 +472,16 @@ export class Server {
 
     statsMsg += generateTable(dataActions, options);
 
+    if (showStat) {
+      return Res(statsMsg);
+    }
+
     try {
       await msg.author.send(statsMsg);
     } catch (e) {
       return Err('Не удалось отправить вам сообщение (Возможно у вас закрыты личные сообщения)');
     }
-    return Res(`Статистика отправлена в личные сообщения\n${showStat ? statsMsg : ''}`);
+    return Res(`Статистика отправлена в личные сообщения`);
   }
 
   private async updateLeaderboardMsg(): Promise<void> {
