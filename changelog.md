@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.0.2 2020-11-04
+
+### Changed
+
+- Опция show для Server Booster в команде stats больше не отправляет сообщение в лс
+
 ## v3.0.1 2020-11-04
 
 ### Added
