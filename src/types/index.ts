@@ -14,7 +14,7 @@ export type TGameMaps = 'skeld' | 'polus';
 
 export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
-  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats' | 'changeRating' | 'stats';
+  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats' | 'changeRating' | 'stats' | 'resetStats';
 export type TAPIMethods = TMethodsWithoutServer | TMethodsWithServer;
 
 export type Parameters<T> = T extends (... args: infer T) => any ? T : never; 
