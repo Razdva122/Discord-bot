@@ -94,7 +94,7 @@ export class Server {
       const userInDB = await UserModel.findOneAndUpdate({ id: user.id }, { name: user.name });
       if (!userInDB) {
         this.playersAmount += 1;
-        const newUser = new UserModel({ id: user.id, name: user.name, gamesID: [], history: [], rating: defaultRating });
+        const newUser = new UserModel({ id: user.id, name: user.name, gamesID: [], history: [], rating: defaultRating, resets: 0 });
         await newUser.save();
       }
     }));
@@ -389,7 +389,7 @@ export class Server {
     this.systemMessages.stats = await msg.channel.send(stats);
   }
 
-  public async getStats(msg: Message, showStat: boolean): Promise<TAnswer> {
+  public async getStats(msg: Message, showStat: boolean, amountOfOperations: number): Promise<TAnswer> {
     const user = await UserModel.findOne({ id: msg.author.id });
     if (!user) {
       return Err('Мы не смогли найти вашу статистику в базе (Статистика появится после первой рейтинговой игры)');
@@ -440,7 +440,9 @@ export class Server {
       };
       statsMsg += `Карта: **${map}**\n` + generateTable(dataMap, optionsMap) + '\n';
     }
-    const lastActions = user.history.slice(user.history.length >= 10 ? user.history.length - 10 : 0);
+    const lastActions = user.history
+      .slice(user.history.length >= amountOfOperations ? user.history.length - amountOfOperations : 0)
+      .reverse();
     const dataActions = lastActions.reduce<[string[],string[],string[]]>((acc, action) => {
       const startOfMsg = {
         'manualy': 'Изменен в ручную',
@@ -460,7 +462,7 @@ export class Server {
     }, [[],[],[]]);
 
     const options: TTableOptions = {
-      title: `Последние 10 изменений рейтинга`,
+      title: `Последние ${amountOfOperations} изменений рейтинга`,
       tableTitle: true,
       markdown: 'd',
       data: [
@@ -473,7 +475,7 @@ export class Server {
     statsMsg += generateTable(dataActions, options);
 
     if (showStat) {
-      return Res(statsMsg);
+      return Res('\n' + statsMsg);
     }
 
     try {

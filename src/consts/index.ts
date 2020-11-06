@@ -6,6 +6,11 @@ export const usersInLeaderboard = 50;
 
 export const maxNicknameForLeadeboardLength = 18;
 
+export const additionalRoles = {
+  legacy: 'legacy',
+  donate: 'Server Booster',
+};
+
 export const ratingChange = {
   crewmate: {
     win: 5,
