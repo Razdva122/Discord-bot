@@ -7,7 +7,7 @@ export const usersInLeaderboard = 50;
 export const maxNicknameForLeadeboardLength = 18;
 
 export const additionalRoles = {
-  legacy: 'legacy',
+  legacy: 'Legacy',
   donate: 'Server Booster',
 };
 
