@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.1.1 2020-11-06
+
+### Fixed
+
+- Неправильное название роли
+
 ## v3.1.0 2020-11-06
 
 ### Added
