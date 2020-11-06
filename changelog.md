@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.2.1 2020-11-06
+
+### Fixed
+
+- Ошибка не работала статистика после сброса рейтинга
+
 ## v3.2.0 2020-11-06
 
 ### Added
