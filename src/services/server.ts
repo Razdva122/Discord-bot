@@ -422,7 +422,7 @@ export class Server {
     let statsMsg = `-------------**Статистика**-------------\n`;
     statsMsg += `Пользователь: ${msg.author.username}\n`
     statsMsg += `Текущий рейтинг: ${user.rating}\n\n`;
-    const games = user.history.filter(el => el.reason !== 'manualy' && el.reason !== 'revert') as IGameChangeRating[];
+    const games = user.history.filter(el => el.reason !== 'manualy' && el.reason !== 'revert' && el.reason !== 'reset') as IGameChangeRating[];
     const stats = {
       skeld: {
         total: { win: 0, lose: 0 },
