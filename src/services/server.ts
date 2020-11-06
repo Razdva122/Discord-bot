@@ -389,6 +389,30 @@ export class Server {
     this.systemMessages.stats = await msg.channel.send(stats);
   }
 
+  public async resetStats(msg: Message, amountOfResets: number): Promise<TAnswer> {
+    const user = await UserModel.findOne({ id: msg.author.id });
+    if (!user) {
+      return Err('Мы не смогли найти вас в нашей базе');
+    }
+
+    if (user.resets + 1 > amountOfResets) {
+      return Err('Вы уже использовали все сбросы рейтинга в этом сезоне');
+    }
+
+    user.resets += 1;
+    user.history.push({
+      reason: 'reset',
+      rating: {
+        before: user.rating,
+        after: defaultRating,
+        diff: defaultRating - user.rating,
+      },
+    });
+    user.rating = defaultRating;
+    await user.save();
+    return Res(`Рейтинг сброшен. Осталось сбросов ${amountOfResets - user.resets}`);
+  }
+
   public async getStats(msg: Message, showStat: boolean, amountOfOperations: number): Promise<TAnswer> {
     const user = await UserModel.findOne({ id: msg.author.id });
     if (!user) {
@@ -449,9 +473,10 @@ export class Server {
         'revert': 'Возврат за игру',
         'win': 'Победа в игре',
         'lose': 'Поражение в игре',
+        'reset': 'Сброс рейтинга',
       }
       acc[0].push(startOfMsg[action.reason]);
-      if (action.reason === 'manualy') {
+      if (action.reason === 'manualy' || action.reason === 'reset') {
         acc[1].push('')
       } else {
         acc[1].push(String(action.gameID))

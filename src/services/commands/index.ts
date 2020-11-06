@@ -10,6 +10,7 @@ import InitStats from './initStats';
 import GameHistory from './gameHistory';
 import ChangeRating from './changeRating';
 import Stats from './stats';
+import ResetStats from './resetStats';
 
 import { accessLevelToMethods, commandHelp } from '../../consts';
 
@@ -26,4 +27,5 @@ export default {
   '!initstats': new InitStats(accessLevelToMethods.initStats, commandHelp.initStats),
   '!stats': new Stats(accessLevelToMethods.stats, commandHelp.stats),
   '!gamehistory': new GameHistory(accessLevelToMethods.gameHistory, commandHelp.gameHistory),
+  '!resetstats': new ResetStats(accessLevelToMethods.resetStats, commandHelp.resetStats),
 }

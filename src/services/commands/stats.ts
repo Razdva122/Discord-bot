@@ -8,7 +8,7 @@ import { Err, Res } from "../../utils/response";
 import { TAnswer } from "../../types";
 import { additionalRoles } from "../../consts";
 
-// !stats
+// !stats 30 show
 export default class Stats extends ServerCommand {
   validateCommand() {
     return Res('Команда корректна');
@@ -23,8 +23,8 @@ export default class Stats extends ServerCommand {
     const legacyRole = msg.guild!.roles.cache.find((role) => role.name === additionalRoles.legacy);
     const userIsDonate = donateRole?.members.find((el) => el === msg.guild?.member(msg.author));
     const userIsLegacy = legacyRole?.members.find((el) => el === msg.guild?.member(msg.author));
-    if (amountOfOperations > 50) {
-      return Err(`Максимальное количество операций 50`);
+    if (amountOfOperations > 30) {
+      return Err(`Максимальное количество операций 30`);
     }
 
     if (amountOfOperations !== defaultOutput && (!userIsLegacy && !userIsDonate)) {

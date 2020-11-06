@@ -30,13 +30,13 @@ interface IUser extends Document {
   id: string,
   name: string,
   gamesID: number[],
-  history: (IGameChangeRating | IManualyChangeRating)[],
+  history: (IGameChangeRating | IManualyChangeRating | IResetRating)[],
   resets: number,
   rating: number,
 }
 
 interface IChangeRating {
-  reason: 'win' | 'lose' | 'revert' | 'manualy',
+  reason: 'win' | 'lose' | 'revert' | 'manualy' | 'reset',
   rating: {
     before: number,
     after: number,
@@ -55,6 +55,10 @@ export interface IGameChangeRating extends IChangeRating {
 interface IManualyChangeRating extends IChangeRating {
   reason: 'manualy',
   changedBy: IShortUser,
+}
+
+interface IResetRating extends IChangeRating {
+  reason: 'reset',
 }
 
 export const UserModel = mongoose.model<IUser>('User', userSchema);
