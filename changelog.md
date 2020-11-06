@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.1.0 2020-11-06
+
+### Added
+
+- Опция позволяющая посмотреть n-последних операций в статистике
+
+### Changed
+
+- Юзеру добавлен параметр resets показывающий количество сбросов статистики
+
 ## v3.0.2 2020-11-04
 
 ### Changed

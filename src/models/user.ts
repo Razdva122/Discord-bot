@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
       diff: Number,
     }
   }],
+  resets: Number,
   rating: Number,
 });
 
@@ -29,7 +30,8 @@ interface IUser extends Document {
   id: string,
   name: string,
   gamesID: number[],
-  history: (IGameChangeRating | IManualyChangeRating)[]
+  history: (IGameChangeRating | IManualyChangeRating)[],
+  resets: number,
   rating: number,
 }
 
