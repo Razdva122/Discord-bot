@@ -1,7 +1,6 @@
 
 import mongoose, { Document } from 'mongoose';
 import shortUserSchema, { IShortUser } from './shortUser';
-import { IGame } from './game';
 import { TGameMaps } from '../types';
 
 const userSchema = new mongoose.Schema({

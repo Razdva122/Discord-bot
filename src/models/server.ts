@@ -1,5 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-import { TGameMaps } from '../types';
+import { TGameMaps, TSubtypesGameChance } from '../types';
 
 const serverSchema = new mongoose.Schema({
   name: String,
@@ -7,6 +7,10 @@ const serverSchema = new mongoose.Schema({
   lastGameID: Number,
   adminsID: String,
   verifiedID: String,
+  subtypesGameChance: {
+    lucky: Number,
+    double: Number,
+  },
   stats: {
     skeld: {
       mini: {
@@ -48,13 +52,14 @@ export type TServerStats = {
   }
 };
 
-interface IServerSchema extends Document {
+export type TServer = {
   name: string,
   id: string,
   lastGameID: number,
   adminsID: string,
   verifiedID: string,
+  subtypesGameChance: TSubtypesGameChance,
   stats: TServerStats,
 }
 
-export const ServerModel = mongoose.model<IServerSchema>('Server', serverSchema);
+export const ServerModel = mongoose.model<TServer & Document>('Server', serverSchema);

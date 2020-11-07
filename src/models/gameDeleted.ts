@@ -2,6 +2,8 @@ import mongoose, { Document } from 'mongoose';
 
 import shortUserSchema, { IShortUser } from './shortUser';
 
+import gameSubTypesSchema from './gameSubTypes';
+
 import { IGame } from './game';
 
 export interface IGameDeleted extends IGame {
@@ -33,6 +35,7 @@ const gameDeletedSchema = new mongoose.Schema({
   win: String,
   type: String,
   map: String,
+  subtype: gameSubTypesSchema,
   impostors: [shortUserSchema],
   crewmates: [shortUserSchema],
   result: {

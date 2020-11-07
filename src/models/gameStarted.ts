@@ -2,6 +2,8 @@ import mongoose, { Document } from 'mongoose';
 
 import shortUserSchema, { IShortUser } from './shortUser';
 
+import gameSubTypesSchema from './gameSubTypes';
+
 import { IGame } from './game';
 
 export interface IGameStarted extends IGame {
@@ -16,6 +18,7 @@ const gameStartedSchema = new mongoose.Schema({
   state: String,
   type: String,
   map: String,
+  subtype: gameSubTypesSchema,
   players: [shortUserSchema],
   started_by: shortUserSchema,
 });
