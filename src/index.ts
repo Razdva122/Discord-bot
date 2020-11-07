@@ -28,7 +28,13 @@ async function start() {
 
       const serverClaster = new ServersClaster(servers.map((server) => {
         return {
-          ...server,
+          name: server.name,
+          id: server.id,
+          adminsID: server.adminsID,
+          subtypesGameChance: server.subtypesGameChance,
+          verifiedID: server.verifiedID,
+          lastGameID: server.lastGameID,
+          stats: server.stats,
         }
       }), client);
   
