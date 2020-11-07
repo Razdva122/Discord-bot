@@ -616,8 +616,9 @@ export class Server {
   private generateGameState(): string {
     let message = `Текущий шанс на игры:\n`;
     message += `---------------------------------\n`;
-    (Object.keys(this.subtypesGameChance) as TGameSubTypesNames[]).forEach((prop) => {
-      message += `${prop}: ${(this.subtypesGameChance[prop] * 100).toFixed(2)}%`;
+    const types: TGameSubTypesNames[] = ['lucky', 'double'];
+    types.forEach((prop) => {
+      message += `${prop}: ${(this.subtypesGameChance[prop] * 100).toFixed(2)}%\n`;
     });
     return '```d\n' + message + '```';
   }
@@ -695,7 +696,8 @@ export class Server {
     const repeatAmount = 20;
     const chance = (1 / repeatAmount) * 2;
     const ran = Math.random();
-    const state = (Object.keys(this.subtypesGameChance) as TGameSubTypesNames[]).reduce<TSubtypeGameState>((acc, prop) => {
+    const types: TGameSubTypesNames[] = ['lucky', 'double'];
+    const state = types.reduce<TSubtypeGameState>((acc, prop) => {
       if (ran < this.subtypesGameChance[prop]) {
         acc[prop] = true;
         this.subtypesGameChance[prop] = 0;

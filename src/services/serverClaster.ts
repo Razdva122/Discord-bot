@@ -34,6 +34,7 @@ export class ServersClaster {
       id: serverID,
       adminsID: server.users.admins.roleID,
       verifiedID: server.users.verified.roleID,
+      subtypesGameChance: server.subtypesGameChance,
       stats: server.stats,
       lastGameID: server.lastGameID,
       playersAmount: server.playersAmount,

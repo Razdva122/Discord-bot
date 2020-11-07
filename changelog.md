@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.3.3 2020-11-07
+
+### Fixed
+
+- Сервер иницировался с 0выми шансами на играми
+
 ## v3.3.2 2020-11-07
 
 ### Fixed
