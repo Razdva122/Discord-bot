@@ -52,7 +52,7 @@ export class Server {
     {
       adminsRoleID: string, verifiedRoleID: string, serverName: string,
       serverID: string, playersAmount: number, lastGameID: number,
-      stats: TServerStats, client: Client, subtypesGameChance: TSubtypesGameChance
+      stats: TServerStats, client: Client, subtypesGameChance: TSubtypesGameChance,
     }) {
     this.users = {
       admins: {

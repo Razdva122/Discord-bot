@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.3.1 2020-11-07
+
+### Fixed
+
+- Ошибка инициализации нового сервера
+
 ## v3.3.0 2020-11-07
 
 ### Added
