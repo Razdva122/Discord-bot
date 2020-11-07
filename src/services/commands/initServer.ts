@@ -43,6 +43,10 @@ export default class InitServer extends ServerlessCommand {
         verifiedRoleID, 
         serverName,
         client,
+        subtypesGameChance: {
+          'double': 0,
+          'lucky': 0,
+        },
         serverID: guild.id, 
         lastGameID: 0,
         playersAmount: 0,
