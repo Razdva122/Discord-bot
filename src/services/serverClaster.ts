@@ -1,6 +1,6 @@
-import { TAnswer, IServersFromMongo } from '../types';
+import { TAnswer } from '../types';
 
-import { ServerModel, UserModel } from '../models';
+import { ServerModel, UserModel, TServer } from '../models';
 
 import { Server }  from './server';
 import { Client } from 'discord.js';
@@ -8,11 +8,15 @@ import { Client } from 'discord.js';
 export class ServersClaster {
   private claster: { [key: string] : Server } = {};
 
-  constructor(serversFromMongo: IServersFromMongo[], client: Client) {
+  constructor(serversFromMongo: TServer[], client: Client) {
     serversFromMongo.forEach(async (serverInfo) => {
       const playersAmount = await UserModel.countDocuments({});
-      const { adminsRoleID, serverID, verifiedRoleID, name, lastGameID, stats } = serverInfo;
-      this.claster[serverID] = new Server({ adminsRoleID, verifiedRoleID, serverName: name, serverID, lastGameID, stats, playersAmount, client });
+      const { adminsID, id, verifiedID, name, lastGameID, stats, subtypesGameChance } = serverInfo;
+      this.claster[id] = new Server({
+        adminsRoleID: adminsID, verifiedRoleID: verifiedID, 
+        serverName: name, serverID: id, lastGameID, stats, 
+        playersAmount, client, subtypesGameChance,
+      });
     });
   }
 
@@ -24,7 +28,6 @@ export class ServersClaster {
         }
       }
     }
-
 
     const createServer = new ServerModel({
       name: server.name,

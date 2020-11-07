@@ -2,8 +2,6 @@ import { User, Message } from 'discord.js';
 
 import { IShortUser } from '../models/shortUser';
 
-import { TServerStats } from '../models';
-
 export * from './util';
 
 export type TAccessLevel = 'owner' | 'admins' | 'verified' | 'all';
@@ -15,6 +13,15 @@ export type TGameMaps = 'skeld' | 'polus';
 export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
   'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats' | 'changeRating' | 'stats' | 'resetStats';
+
+export type TGameSubTypesNames = 'lucky' | 'double';
+
+export type TSubtypesGameChance = {
+  [key in TGameSubTypesNames]: number;
+};
+export type TSubtypeGameState = {
+  [key in TGameSubTypesNames]: boolean;
+};
 export type TAPIMethods = TMethodsWithoutServer | TMethodsWithServer;
 
 export type Parameters<T> = T extends (... args: infer T) => any ? T : never; 
@@ -31,15 +38,6 @@ export interface ICommand {
   (args: string[], user: User, serverID: string): void,
   help: string,
   access: TAccessLevel,
-}
-
-export interface IServersFromMongo {
-  name: string,
-  serverID: string,
-  lastGameID: number,
-  adminsRoleID: string,
-  verifiedRoleID: string,
-  stats: TServerStats,
 }
 
 export type TAnswerResult<T> = {
@@ -64,6 +62,7 @@ export interface IGameFinishState {
   id: number,
   type: TGameType,
   map: TGameMaps,
+  subtype: TSubtypeGameState,
   impostorsRes: TGameResult,
   impostors: IShortUser[],
   crewmates: IShortUser[],

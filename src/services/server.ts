@@ -1,6 +1,10 @@
 import { User, Guild, Message, Client } from 'discord.js';
 
-import { TAnswer, TGameResult, IGameFinishState, TGameType, TGameMaps } from '../types';
+import {
+  TAnswer, TGameResult, IGameFinishState,
+  TGameType, TGameMaps, TSubtypesGameChance,
+  TSubtypeGameState, TGameSubTypesNames,
+} from '../types';
 
 import {
   ServerModel, GameStartedModel, GameCanceledModel, 
@@ -28,6 +32,7 @@ export class Server {
     leaderboard: null | Message,
     stats: null | Message,
   } = { leaderboard: null, stats: null };
+  subtypesGameChance: TSubtypesGameChance
   client: Client
   lastGameID: number
   playersAmount: number
@@ -42,8 +47,12 @@ export class Server {
   }
   stats: TServerStats
   
-  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID, lastGameID, playersAmount, stats, client }: 
-    { adminsRoleID: string, verifiedRoleID: string, serverName: string, serverID: string, playersAmount: number, lastGameID: number, stats: TServerStats, client: Client }) {
+  constructor({ adminsRoleID, verifiedRoleID, serverName, serverID, lastGameID, playersAmount, stats, client, subtypesGameChance }: 
+    {
+      adminsRoleID: string, verifiedRoleID: string, serverName: string,
+      serverID: string, playersAmount: number, lastGameID: number,
+      stats: TServerStats, client: Client, subtypesGameChance: TSubtypesGameChance
+    }) {
     this.users = {
       admins: {
         roleID: adminsRoleID,
@@ -52,13 +61,13 @@ export class Server {
         roleID: verifiedRoleID,
       }
     }
-
     this.name = serverName;
 
     this.serverID = serverID;
     this.lastGameID = lastGameID;
     this.playersAmount = playersAmount;
     this.client = client;
+    this.subtypesGameChance = subtypesGameChance;
 
     this.stats = stats;
   }
@@ -81,6 +90,7 @@ export class Server {
       id: this.lastGameID,
       state: 'started',
       type: 'full',
+      subtype: this.generateGameType(),
       map,
       players: usersInGame,
       started_by: {
@@ -88,7 +98,7 @@ export class Server {
         id: msg.author.id,
       },
     });
-    const res = await createGame.save();
+    await createGame.save();
 
     await Promise.all(usersInGame.map(async (user) => {
       const userInDB = await UserModel.findOneAndUpdate({ id: user.id }, { name: user.name });
@@ -146,6 +156,7 @@ export class Server {
     const finishGame = await this.updateRatingAndFinishGame({
       id: gameID,
       type: prevGameState.type,
+      subtype: prevGameState.subtype,
       map: prevGameState.map,
       impostorsRes: gameStatus,
       impostors,
@@ -194,6 +205,7 @@ export class Server {
       state: "finished",
       win: state.impostorsRes === 'lose' ? 'crewmates' : 'impostors',
       map: state.map,
+      subtype: state.subtype,
       type: state.type,
       impostors: state.impostors,
       crewmates: state.crewmates,
@@ -255,6 +267,7 @@ export class Server {
       id: prevGameState.id,
       state: 'canceled',
       type: prevGameState.type,
+      subtype: prevGameState.subtype,
       map: prevGameState.map,
       players: prevGameState.players,
       started_by: prevGameState.started_by,
@@ -287,6 +300,7 @@ export class Server {
       crewmates: prevGameState.crewmates,
       win: prevGameState.win,
       type: prevGameState.type,
+      subtype: prevGameState.subtype,
       map: prevGameState.map,
       result: prevGameState.result,
       state: 'deleted',
@@ -650,5 +664,26 @@ export class Server {
   public isUserAdmin(user: User, guild: Guild) {
     const role = guild.roles.cache.find((role) => role.id === this.users.admins.roleID);
     return Boolean(role && role.members.has(user.id));
+  }
+
+  private async generateGameType(): Promise<TSubtypeGameState> {
+    const repeatAmount = 20;
+    const chance = (1 / repeatAmount) * 2;
+    const ran = Math.random();
+    const state = (Object.keys(this.subtypesGameChance) as TGameSubTypesNames[]).reduce<TSubtypeGameState>((acc, prop) => {
+      if (ran < this.subtypesGameChance[prop]) {
+        acc[prop] = true;
+        this.subtypesGameChance[prop] = 0;
+      } else {
+        this.subtypesGameChance[prop] += chance * Math.random();
+      }
+      return acc;
+    }, {
+      lucky: false,
+      double: false,
+    });
+
+    await ServerModel.findOneAndUpdate({ id: this.serverID }, { subtypesGameChance: this.subtypesGameChance });
+    return state;
   }
 }
