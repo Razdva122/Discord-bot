@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.3.2 2020-11-07
+
+### Fixed
+
+- Сервер не поднимался из-за spread
+
 ## v3.3.1 2020-11-07
 
 ### Fixed
