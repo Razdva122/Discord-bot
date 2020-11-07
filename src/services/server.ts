@@ -31,7 +31,8 @@ export class Server {
   private systemMessages: {
     leaderboard: null | Message,
     stats: null | Message,
-  } = { leaderboard: null, stats: null };
+    gameState: null | Message,
+  } = { leaderboard: null, stats: null, gameState: null };
   subtypesGameChance: TSubtypesGameChance
   client: Client
   lastGameID: number
@@ -403,6 +404,11 @@ export class Server {
     this.systemMessages.stats = await msg.channel.send(stats);
   }
 
+  public async initGameState(msg: Message): Promise<void> {
+    const state = await this.generateGameState();
+    this.systemMessages.gameState = await msg.channel.send(state);
+  }
+
   public async resetStats(msg: Message, amountOfResets: number): Promise<TAnswer> {
     const user = await UserModel.findOne({ id: msg.author.id });
     if (!user) {
@@ -543,6 +549,15 @@ export class Server {
     await this.systemMessages.stats.edit(stats);
   }
 
+  private async updateGameStateMsg(): Promise<void> {
+    if (!this.systemMessages.gameState) {
+      return;
+    }
+    const state = await this.generateGameState();
+
+    await this.systemMessages.gameState.edit(state);
+  }
+
   private async updateStats(type: TGameType, map: TGameMaps, res: 'imposters_win' | 'crewmates_win', diff: 1 | -1): Promise<void> {
     this.stats[map][type].amount += diff;
     this.stats[map][type][res] += diff;
@@ -552,6 +567,7 @@ export class Server {
   private async updateSystemMessages(): Promise<void> {
     await this.updateLeaderboardMsg();
     await this.updateStatsMsg();
+    await this.updateGameStateMsg();
     await this.client.user?.setActivity({
       name: `Игр: ${this.lastGameID} | Игроков: ${this.playersAmount}`,
       type: 'WATCHING',
@@ -594,6 +610,15 @@ export class Server {
       message += `Imposters: Побед - ${mapStats.full.imposters_win}, Winrate - ${Math.round(mapStats.full.imposters_win / mapStats.full.amount * 100)} %\n`;
       message += `Crewmates: Побед - ${mapStats.full.crewmates_win}, Winrate - ${Math.round(mapStats.full.crewmates_win / mapStats.full.amount * 100)} %\n\n`;
     }
+    return '```d\n' + message + '```';
+  }
+
+  private generateGameState(): string {
+    let message = `Текущий шанс на игры:\n`;
+    message += `---------------------------------\n`;
+    (Object.keys(this.subtypesGameChance) as TGameSubTypesNames[]).forEach((prop) => {
+      message += `${prop}: ${(this.subtypesGameChance[prop] * 100).toFixed(2)}%`;
+    });
     return '```d\n' + message + '```';
   }
 

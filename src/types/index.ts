@@ -12,7 +12,8 @@ export type TGameMaps = 'skeld' | 'polus';
 
 export type TMethodsWithoutServer = 'initServer';
 export type TMethodsWithServer = 'startGame' | 'cancelGame' | 'endGame' | 'deleteGame' | 
-  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats' | 'changeRating' | 'stats' | 'resetStats';
+  'updateRole' | 'help' | 'initLeaderboard' | 'gameHistory' | 'initStats' |
+  'changeRating' | 'stats' | 'resetStats' | 'initGameState';
 
 export type TGameSubTypesNames = 'lucky' | 'double';
 
