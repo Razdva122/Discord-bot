@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.4.0 2020-11-08
+
+### Added
+
+- Добавлены бонусы для игр lucky и double
+
 ## v3.3.3 2020-11-07
 
 ### Fixed

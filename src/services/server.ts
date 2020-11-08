@@ -91,7 +91,7 @@ export class Server {
       id: this.lastGameID,
       state: 'started',
       type: 'full',
-      subtype: this.generateGameType(),
+      subtype: await this.generateGameType(),
       map,
       players: usersInGame,
       started_by: {
@@ -177,7 +177,10 @@ export class Server {
 
     await finishedGame.save();
 
-    const firstLine = `Игра ID: ${gameID} успешно завершена`;
+    const subtypes: TGameSubTypesNames[] = ['lucky', 'double'];
+    const subtypesInGame = subtypes.filter((el) => prevGameState.subtype[el]);
+    const subtypeGame = subtypesInGame.length ? `**Бонусы: ${subtypesInGame.join(', ')}**` : '';
+    const firstLine = `Игра ID: ${gameID} успешно завершена ${subtypeGame}`;
     const secondLine = `Победили ${finishGame.result.data.win}`;
     const crewmatesInString = finishGame.result.data.result.crewmates.map((user) => {
       return `${user.name} ${user.before} (${user.diff < 0 ? '' : '+'}${user.diff})`;
@@ -226,6 +229,8 @@ export class Server {
       } else {
         diff = ratingChange[playerIs][state.impostorsRes === 'lose' ? 'win' : 'lose'];
       }
+      diff = state.subtype.double ? diff * 2 : diff;
+      diff = state.subtype.lucky ? Math.max(diff, 0) : diff;
 
       const playerFromDB = await UserModel.findOne({ id: player.id });
 
