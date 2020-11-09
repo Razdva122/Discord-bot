@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.4.1 2020-11-09
+
+### Changed
+
+- Уменьшен шанс на выпадение подтипов игр
+
 ## v3.4.0 2020-11-08
 
 ### Added
