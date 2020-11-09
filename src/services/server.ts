@@ -699,11 +699,10 @@ export class Server {
 
   private async generateGameType(): Promise<TSubtypeGameState> {
     const repeatAmount = 20;
-    const chance = (1 / repeatAmount) * 2;
-    const ran = Math.random();
+    const chance = (1 / repeatAmount) / 5 * 2;
     const types: TGameSubTypesNames[] = ['lucky', 'double'];
     const state = types.reduce<TSubtypeGameState>((acc, prop) => {
-      if (ran < this.subtypesGameChance[prop]) {
+      if (Math.random() < this.subtypesGameChance[prop]) {
         acc[prop] = true;
         this.subtypesGameChance[prop] = 0;
       } else {
