@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v3.4.2 2020-13-09
+
+### Changed
+
+- Все изменения рейтинга увеличены в три раза
+- Добавлен один сброс рейтинга
+
 ## v3.4.1 2020-11-09
 
 ### Changed
