@@ -13,12 +13,12 @@ export const additionalRoles = {
 
 export const ratingChange = {
   crewmate: {
-    win: 5,
-    lose: -10,
+    win: 15,
+    lose: -30,
   },
   impostor: {
-    win: 40,
-    lose: -20,
+    win: 120,
+    lose: -60,
   },
 };
 

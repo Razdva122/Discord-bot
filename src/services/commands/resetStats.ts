@@ -19,7 +19,7 @@ export default class ResetStats extends ServerCommand {
     const legacyRole = msg.guild!.roles.cache.find((role) => role.name === additionalRoles.legacy);
     const userIsDonate = donateRole?.members.find((el) => el === msg.guild?.member(msg.author));
     const userIsLegacy = legacyRole?.members.find((el) => el === msg.guild?.member(msg.author));
-    let amountOfResets = 1;
+    let amountOfResets = 2;
     if (userIsDonate) {
       amountOfResets += 1;
     }
