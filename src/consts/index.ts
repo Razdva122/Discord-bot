@@ -89,4 +89,11 @@ export const commandHelp: { readonly [key in TAPIMethods]: string } = {
   'help': `\n!help`,
 };
 
+export const amountOfResets = {
+  default: 2,
+  legacy: 1,
+  donate: 1,
+}
+
+// Укажите Ваш ID для работы с ботом
 export const mainOwnerID = '278796523817402369';

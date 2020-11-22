@@ -16,7 +16,7 @@ async function start() {
   let commandController: CommandController;
 
   try {
-    await mongoose.connect(`mongodb+srv://${settings.mongoUser.user}:${settings.mongoUser.password}@cluster0.nm0xd.mongodb.net/${settings.mongoDB}`, {
+    await mongoose.connect(`mongodb+srv://${settings.mongoUser.user}:${settings.mongoUser.password}@${settings.mongoPath}/${settings.mongoDB}`, {
       useNewUrlParser: true,
       useFindAndModify: false,
     });

@@ -6,7 +6,7 @@ import { Message } from 'discord.js';
 import { Res } from "../../utils/response";
 
 import { TAnswer } from "../../types";
-import { additionalRoles } from "../../consts";
+import { additionalRoles, amountOfResets } from "../../consts";
 
 // !resetStats
 export default class ResetStats extends ServerCommand {
@@ -19,14 +19,14 @@ export default class ResetStats extends ServerCommand {
     const legacyRole = msg.guild!.roles.cache.find((role) => role.name === additionalRoles.legacy);
     const userIsDonate = donateRole?.members.find((el) => el === msg.guild?.member(msg.author));
     const userIsLegacy = legacyRole?.members.find((el) => el === msg.guild?.member(msg.author));
-    let amountOfResets = 2;
+    let totalResets = amountOfResets.default;
     if (userIsDonate) {
-      amountOfResets += 1;
+      totalResets += amountOfResets.donate;
     }
 
     if (userIsLegacy) {
-      amountOfResets += 1;
+      totalResets += amountOfResets.legacy;
     }
-    return await server.resetStats(msg, amountOfResets);
+    return await server.resetStats(msg, totalResets);
   }
 }
