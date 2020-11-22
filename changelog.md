@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format should be based on [Keep a Changelog][keepachangelog] and this project adheres to [Semantic Versioning][semver].
 
+## v4.0.0 2020-22-09
+
+### Added
+
+- Написана первая версия документации для использования бота
+
 ## v3.4.2 2020-13-09
 
 ### Changed
